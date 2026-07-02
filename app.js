@@ -2,14 +2,14 @@ const POSITIONS = [
   {key:'LF',jp:'レフト'}, {key:'S',jp:'セッター'}, {key:'RF',jp:'ライト'},
   {key:'BL',jp:'Bレフト'}, {key:'C',jp:'センター'}, {key:'BR',jp:'Bライト'}
 ];
-const stateKey='vboard_sprint10_1';
+const stateKey='vboard_sprint11';
 const defaultPlayers = [
-  {id:'p1',nickname:'',position:'LF',grade:'4',age:'10',height:'150'},
-  {id:'p2',nickname:'',position:'S',grade:'4',age:'10',height:'150'},
-  {id:'p3',nickname:'',position:'RF',grade:'4',age:'10',height:'150'},
-  {id:'p4',nickname:'',position:'BL',grade:'4',age:'10',height:'150'},
-  {id:'p5',nickname:'',position:'C',grade:'4',age:'10',height:'150'},
-  {id:'p6',nickname:'',position:'BR',grade:'4',age:'10',height:'150'},
+  {id:'p1',nickname:'',position:'LF',grade:'4',age:'10',height:'150',edited:false},
+  {id:'p2',nickname:'',position:'S',grade:'4',age:'10',height:'150',edited:false},
+  {id:'p3',nickname:'',position:'RF',grade:'4',age:'10',height:'150',edited:false},
+  {id:'p4',nickname:'',position:'BL',grade:'4',age:'10',height:'150',edited:false},
+  {id:'p5',nickname:'',position:'C',grade:'4',age:'10',height:'150',edited:false},
+  {id:'p6',nickname:'',position:'BR',grade:'4',age:'10',height:'150',edited:false},
 ];
 const oppPlayers = POSITIONS.map((p,i)=>({id:'o'+i,position:p.key,opponent:true}));
 const defaults = {
@@ -26,7 +26,7 @@ const defaults = {
   }}
 };
 let state = load();
-let mode='player', sheet=null, drag=null, longTimer=null;
+let mode='player', sheet=null, drag=null, longTimer=null, swapFirst=null;
 function load(){try{return {...structuredClone(defaults),...(JSON.parse(localStorage.getItem(stateKey)||'{}'))}}catch{return structuredClone(defaults)}}
 function save(){localStorage.setItem(stateKey,JSON.stringify(state)); const el=document.querySelector('.saveStatus'); if(el) el.textContent='保存済み';}
 function posLabel(key){return (POSITIONS.find(p=>p.key===key)||{}).jp||key}
@@ -43,23 +43,44 @@ function render(){
     <div class="bottomBar"><button class="tool" id="undoBtn">↶<br>UNDO</button><button class="tool" id="rangeBtn">◌<br>範囲</button><button class="tool" id="swapBtn">⇄<br>交代</button><button class="tool" id="addSceneBtn">＋<br>シーン</button><button class="tool" id="resetBtn">⌫<br>リセット</button></div>
   </div><div class="sheetBackdrop" id="backdrop"></div><div id="sheets"></div><div class="modal" id="modal"></div>`;
   bind();
+  requestAnimationFrame(fitAllTokenText);
 }
 function renderCoverage(p){const l=layout()[p.id]; if(!l)return''; const cls=state.selected===p.id?'coverage selected':'coverage'; return `<div class="${cls}" style="left:${l.x}%;top:${l.y}%;width:${l.w}%;height:${l.h/2}%;transform:translate(-50%,-50%) rotate(${l.r||0}deg)"></div>${state.selected===p.id?renderHandles(l):''}`}
 function renderHandles(l){return `<div class="handle" data-h="right" style="left:${l.x+l.w/2}%;top:${l.y}%"></div><div class="handle" data-h="bottom" style="left:${l.x}%;top:${l.y+l.h/4}%"></div><div class="handle" data-h="scale" style="left:${l.x+l.w/2*.7}%;top:${l.y+l.h/4*.7}%"></div><div class="handle" data-h="rotate" style="left:${l.x+l.w/2*.45}%;top:${l.y-l.h/4*.75}%"></div>`}
-function renderPlayer(p){const l=layout()[p.id]; if(!l)return''; const name=p.nickname||''; const noName=!name&&!p.opponent; const main=p.opponent?posLabel(p.position):name; const sub=p.opponent?posLabel(p.position):posLabel(p.position); return `<div class="player ${p.opponent?'opponent':''} ${state.selected===p.id?'selected':''} ${noName?'noName':''}" data-id="${p.id}" style="left:${l.x}%;top:${l.y}%"><span class="primaryText ${main?'':'empty'}">${main}</span><span class="positionText">${sub}</span></div>`}
+function renderPlayer(p){
+  const l=layout()[p.id]; if(!l)return'';
+  const showSelfInfo = !p.opponent && (p.edited || (p.nickname&&p.nickname.trim()));
+  const main = p.opponent ? posLabel(p.position) : (showSelfInfo ? (p.nickname||'') : '');
+  const sub = p.opponent ? '' : (showSelfInfo ? posLabel(p.position) : '');
+  const noText = !main && !sub;
+  return `<div class="player ${p.opponent?'opponent':''} ${state.selected===p.id?'selected':''} ${noText?'noText':''}" data-id="${p.id}" style="left:${l.x}%;top:${l.y}%"><span class="primaryText ${main?'':'empty'}" data-fit="1">${main}</span><span class="positionText ${sub?'':'empty'}" data-fit="1">${sub}</span></div>`
+}
+function fitAllTokenText(){
+  document.querySelectorAll('[data-fit]').forEach(el=>{
+    if(!el.textContent.trim()) return;
+    const base = el.classList.contains('primaryText') ? 20 : 13;
+    el.style.fontSize = base+'px';
+    let size = base;
+    while(size>8 && (el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight+1)){
+      size -= 1; el.style.fontSize = size+'px';
+    }
+  });
+}
 function bind(){
   document.getElementById('playersOpen').onclick=()=>openSheet('players','right'); document.getElementById('playerHandle').onclick=()=>openSheet('players','right');
   document.getElementById('teamOpen').onclick=()=>openSheet('teams','left'); document.getElementById('teamHandle').onclick=()=>openSheet('teams','left');
   document.getElementById('sceneOpen').onclick=()=>openSheet('scenes','right'); document.getElementById('addSceneBtn').onclick=addScene;
   document.getElementById('resetBtn').onclick=()=>{if(confirm('このシーンの配置を初期化しますか？')){state.layouts[activeScene().id]=structuredClone(defaults.layouts.s1); save(); render();}}
-  document.getElementById('swapBtn').onclick=()=>alert('交代: 交代したい2人を順にタップして入れ替えます（次版で強化）');
+  document.getElementById('swapBtn').onclick=()=>{mode='swap'; swapFirst=null; toast('交代する2人を順にタップ');};
   document.getElementById('rangeBtn').onclick=()=>{mode='range';};
   bindCourt();
 }
+function toast(msg){let t=document.querySelector('.toast'); if(!t){t=document.createElement('div');t.className='toast';document.body.appendChild(t);} t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600);}
+function handleSwapTap(id){ if(id.startsWith('o')) return; if(!swapFirst){swapFirst=id; state.selected=id; render(); toast('もう1人をタップ'); return;} const l=layout(); const a=l[swapFirst], b=l[id]; if(a&&b){const ax=a.x, ay=a.y; a.x=b.x; a.y=b.y; b.x=ax; b.y=ay;} mode='player'; swapFirst=null; save(); render(); toast('交代しました');}
 function bindCourt(){
   const court=document.getElementById('court');
   court.querySelectorAll('.player').forEach(el=>{
-    el.addEventListener('pointerdown',e=>{e.preventDefault(); const id=el.dataset.id; state.selected=id; save(); render(); const c=document.getElementById('court').getBoundingClientRect(); drag={type:'player',id,dx:e.clientX,dy:e.clientY,c}; longTimer=setTimeout(()=>openEditor(id),650); el.setPointerCapture(e.pointerId);});
+    el.addEventListener('pointerdown',e=>{e.preventDefault(); const id=el.dataset.id; if(mode==='swap'){handleSwapTap(id);return;} state.selected=id; save(); render(); const c=document.getElementById('court').getBoundingClientRect(); drag={type:'player',id,dx:e.clientX,dy:e.clientY,c}; longTimer=setTimeout(()=>openEditor(id),650); el.setPointerCapture(e.pointerId);});
   });
   document.getElementById('ball').addEventListener('pointerdown',e=>{e.preventDefault(); const c=court.getBoundingClientRect(); drag={type:'ball',c}; e.target.setPointerCapture(e.pointerId);});
   court.querySelectorAll('.handle').forEach(el=>{el.addEventListener('pointerdown',e=>{e.preventDefault(); const c=court.getBoundingClientRect(); drag={type:'handle',h:el.dataset.h,id:state.selected,c}; el.setPointerCapture(e.pointerId);});});
@@ -72,8 +93,8 @@ function openSheet(kind,side){const backdrop=document.getElementById('backdrop')
 function closeSheet(){document.getElementById('backdrop')?.classList.remove('show'); document.getElementById('sheets').innerHTML='';}
 function sheetContent(kind){if(kind==='players')return state.players.map((p,i)=>`<div class="listItem" data-edit="${p.id}"><div class="miniToken">${i+1}</div><div class="itemMain"><div class="itemName">${p.nickname||'未入力'}</div><div class="itemSub">${posLabel(p.position)} / ${p.grade}年 / ${p.height}cm</div></div><div>›</div></div>`).join('')+`<button class="addBtn" id="addPlayer">＋ 選手追加</button>`; if(kind==='teams')return state.teams.map(t=>`<div class="listItem" data-team="${t.id}"><div class="miniToken">${t.id}</div><div class="itemMain"><div class="itemName">${t.name}</div></div><div>›</div></div>`).join('')+`<button class="addBtn" id="addTeam">＋ チーム追加</button>`; return state.scenes.map(s=>`<div class="listItem" data-scene="${s.name}"><div class="miniToken">🏐</div><div class="itemMain"><div class="itemName">${s.name}</div></div><div>›</div></div>`).join('')+`<button class="addBtn" id="addSceneInSheet">＋ シーン追加</button>`}
 function bindSheet(kind){document.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>openEditor(el.dataset.edit)); const ap=document.getElementById('addPlayer'); if(ap)ap.onclick=addPlayer; const at=document.getElementById('addTeam'); if(at)at.onclick=addTeam; const as=document.getElementById('addSceneInSheet'); if(as)as.onclick=addScene; document.querySelectorAll('[data-team]').forEach(el=>el.onclick=()=>{state.team=el.dataset.team;save();closeSheet();render();}); document.querySelectorAll('[data-scene]').forEach(el=>{el.onclick=()=>{state.scene=el.dataset.scene;save();closeSheet();render();}; el.oncontextmenu=e=>{e.preventDefault(); renameScene(el.dataset.scene)}})}
-function addPlayer(){const id='p'+Date.now(); state.players.push({id,nickname:'',position:'LF',grade:'4',age:'10',height:'140'}); layout()[id]={x:50,y:80,w:15,h:15,r:0}; save(); closeSheet(); render(); openEditor(id);}
+function addPlayer(){const id='p'+Date.now(); state.players.push({id,nickname:'',position:'LF',grade:'4',age:'10',height:'140',edited:false}); layout()[id]={x:50,y:80,w:15,h:15,r:0}; save(); closeSheet(); render(); openEditor(id);}
 function addTeam(){const name=prompt('チーム名','B'); if(!name)return; const id=name.slice(0,1).toUpperCase(); state.teams.push({id,name}); state.team=id; save(); closeSheet(); render();}
 function addScene(){const name=prompt('シーン名','新しいシーン'); if(!name)return; const id='s'+Date.now(); state.scenes.push({id,name}); state.layouts[id]=structuredClone(layout()); state.scene=name; save(); closeSheet(); render();}
-function openEditor(id){const p=state.players.find(x=>x.id===id); if(!p) return; const modal=document.getElementById('modal'); modal.classList.add('show'); modal.innerHTML=`<div class="editor"><h2>選手情報</h2><div class="grid"><div class="field full"><label>ニックネーム</label><input id="edName" value="${p.nickname||''}" placeholder="例：みはな"></div><div class="field"><label>学年</label><select id="edGrade">${[1,2,3,4,5,6].map(n=>`<option ${p.grade==n?'selected':''}>${n}</option>`).join('')}</select></div><div class="field"><label>年齢</label><select id="edAge">${Array.from({length:8},(_,i)=>i+6).map(n=>`<option ${p.age==n?'selected':''}>${n}</option>`).join('')}</select></div><div class="field"><label>身長</label><select id="edHeight">${Array.from({length:81},(_,i)=>i+100).map(n=>`<option ${p.height==n?'selected':''}>${n}</option>`).join('')}</select></div><div class="field"><label>ポジション</label><select id="edPos">${POSITIONS.map(pos=>`<option value="${pos.key}" ${p.position===pos.key?'selected':''}>${pos.jp}</option>`).join('')}</select></div><div class="field full"><label>コーチ専用メモ</label><textarea id="edMemo" rows="3">${p.memo||''}</textarea></div></div><div class="actions"><button class="cancel" id="cancelEdit">キャンセル</button><button class="save" id="saveEdit">保存</button></div></div>`; document.getElementById('cancelEdit').onclick=()=>modal.classList.remove('show'); document.getElementById('saveEdit').onclick=()=>{p.nickname=document.getElementById('edName').value.trim();p.grade=document.getElementById('edGrade').value;p.age=document.getElementById('edAge').value;p.height=document.getElementById('edHeight').value;p.position=document.getElementById('edPos').value;p.memo=document.getElementById('edMemo').value;modal.classList.remove('show');save();render();};}
+function openEditor(id){const p=state.players.find(x=>x.id===id); if(!p) return; const modal=document.getElementById('modal'); modal.classList.add('show'); modal.innerHTML=`<div class="editor"><h2>選手情報</h2><div class="grid"><div class="field full"><label>ニックネーム</label><input id="edName" value="${p.nickname||''}" placeholder="例：みはな"></div><div class="field"><label>学年</label><select id="edGrade">${[1,2,3,4,5,6].map(n=>`<option ${p.grade==n?'selected':''}>${n}</option>`).join('')}</select></div><div class="field"><label>年齢</label><select id="edAge">${Array.from({length:8},(_,i)=>i+6).map(n=>`<option ${p.age==n?'selected':''}>${n}</option>`).join('')}</select></div><div class="field"><label>身長</label><select id="edHeight">${Array.from({length:81},(_,i)=>i+100).map(n=>`<option ${p.height==n?'selected':''}>${n}</option>`).join('')}</select></div><div class="field"><label>ポジション</label><select id="edPos">${POSITIONS.map(pos=>`<option value="${pos.key}" ${p.position===pos.key?'selected':''}>${pos.jp}</option>`).join('')}</select></div><div class="field full"><label>コーチ専用メモ</label><textarea id="edMemo" rows="3">${p.memo||''}</textarea></div></div><div class="actions"><button class="cancel" id="cancelEdit">キャンセル</button><button class="save" id="saveEdit">保存</button></div></div>`; document.getElementById('cancelEdit').onclick=()=>modal.classList.remove('show'); document.getElementById('saveEdit').onclick=()=>{p.nickname=document.getElementById('edName').value.trim();p.edited=true;p.grade=document.getElementById('edGrade').value;p.age=document.getElementById('edAge').value;p.height=document.getElementById('edHeight').value;p.position=document.getElementById('edPos').value;p.memo=document.getElementById('edMemo').value;modal.classList.remove('show');save();render();};}
 render();
