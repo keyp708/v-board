@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const STORAGE_KEY = 'vboard_sprint13_stable';
+  const STORAGE_KEY = 'vboard_sprint14_stable';
   const POS = [
     { id:'LF', short:'LF', label:'レフト' },
     { id:'S', short:'S', label:'セッター' },
@@ -11,8 +11,8 @@
   ];
   const DEFAULT_SPOTS = {
     opponent: [
-      {x:25,y:21,pos:'LF'}, {x:50,y:21,pos:'S'}, {x:75,y:21,pos:'RF'},
-      {x:25,y:39,pos:'BL'}, {x:50,y:39,pos:'C'}, {x:75,y:39,pos:'BR'},
+      {x:25,y:21,pos:'BL'}, {x:50,y:21,pos:'C'}, {x:75,y:21,pos:'BR'},
+      {x:25,y:39,pos:'LF'}, {x:50,y:39,pos:'S'}, {x:75,y:39,pos:'RF'},
     ],
     home: [
       {x:25,y:64,pos:'LF'}, {x:50,y:64,pos:'S'}, {x:75,y:64,pos:'RF'},
@@ -25,8 +25,8 @@
   const defaultOpponents = () => DEFAULT_SPOTS.opponent.map((s,i)=>({ id:'o'+(i+1), position:s.pos }));
   const makeSceneState = () => ({
     ball:{x:50,y:50,type:'molten'},
-    home: DEFAULT_SPOTS.home.map((s,i)=>({ id:'p'+(i+1), x:s.x, y:s.y, r:{w:18,h:18,rot:0} })),
-    opponent: DEFAULT_SPOTS.opponent.map((s,i)=>({ id:'o'+(i+1), x:s.x, y:s.y, r:{w:18,h:18,rot:0} }))
+    home: DEFAULT_SPOTS.home.map((s,i)=>({ id:'p'+(i+1), x:s.x, y:s.y, r:{w:24,h:24,rot:0} })),
+    opponent: DEFAULT_SPOTS.opponent.map((s,i)=>({ id:'o'+(i+1), x:s.x, y:s.y, r:{w:24,h:24,rot:0} }))
   });
   const defaultState = () => ({
     currentTeamId:'t1', currentSceneId:'s1', selectedId:null, rangeMode:true, swapMode:false, history:[],
@@ -36,6 +36,41 @@
       {id:'s3', name:'チャンス', state:makeSceneState()},
     ]}]
   });
+
+
+  function normalizeState(st){
+    const circle = () => ({w:24,h:24,rot:0});
+    if(!st || !Array.isArray(st.teams)) return defaultState();
+    st.teams.forEach(team=>{
+      if(!Array.isArray(team.players)) team.players = defaultPlayers();
+      if(!Array.isArray(team.opponents) || team.opponents.length!==6) team.opponents = defaultOpponents();
+      if(!Array.isArray(team.scenes) || !team.scenes.length) team.scenes = [{id:'s1', name:'サーブレシーブ', state:makeSceneState()}];
+      team.players.forEach((pl,i)=>{
+        const def = POS[i%6];
+        pl.position = POS.some(p=>p.id===pl.position) ? pl.position : def.id;
+        pl.nickname = pl.nickname || '';
+        pl.grade = pl.grade || '4年'; pl.age = pl.age || '10歳'; pl.height = pl.height || '135cm'; pl.gender = pl.gender || '未設定';
+      });
+      team.opponents.forEach((op,i)=>{ op.position = DEFAULT_SPOTS.opponent[i]?.pos || op.position || 'LF'; });
+      team.scenes.forEach(sc=>{
+        if(!sc.state) sc.state = makeSceneState();
+        ['home','opponent'].forEach(side=>{
+          const defaults = DEFAULT_SPOTS[side];
+          if(!Array.isArray(sc.state[side]) || sc.state[side].length < 6){
+            sc.state[side] = defaults.map((d,i)=>({id: side==='home' ? (team.players[i]?.id || 'p'+(i+1)) : 'o'+(i+1), x:d.x, y:d.y, r:circle()}));
+          }
+          sc.state[side].forEach((spot,i)=>{
+            if(!spot.r || typeof spot.r.w!=='number' || typeof spot.r.h!=='number') spot.r = circle();
+            // Sprint14: default/current saved ellipses are reset to clean circles unless user adjusts after this release.
+            if(Math.abs(spot.r.w-spot.r.h)>0.5){ const avg=Math.max(18, Math.min(34, (spot.r.w+spot.r.h)/2)); spot.r={w:avg,h:avg,rot:0}; }
+            if(!spot.x || !spot.y){ spot.x = defaults[i%6].x; spot.y = defaults[i%6].y; }
+          });
+        });
+        if(!sc.state.ball) sc.state.ball={x:50,y:50,type:'molten'};
+      });
+    });
+    return st;
+  }
 
   let state = load();
   let drag = null;
@@ -54,7 +89,7 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if(raw){
         const parsed = JSON.parse(raw);
-        if(parsed && parsed.teams && parsed.teams.length) return parsed;
+        if(parsed && parsed.teams && parsed.teams.length) return normalizeState(parsed);
       }
     }catch(e){}
     return defaultState();
@@ -191,7 +226,7 @@
     clearTimeout(longTimer);
     longTimer=setTimeout(()=>{
       if(!longMoved){ openEditor(id); drag=null; }
-    },620);
+    },480);
   }
 
   function ballDown(e){
@@ -313,7 +348,7 @@
   $('addPlayerBtn').addEventListener('click',()=>{
     const t=currentTeam(); const id=makeId('p'); const idx=t.players.length+1;
     t.players.push({id,nickname:'',grade:'4年',age:'10歳',height:'135cm',gender:'未設定',position:'LF',coachMemo:''});
-    t.scenes.forEach(sc=>sc.state.home.push({id,x:15+(idx%3)*20,y:88,r:{w:18,h:18,rot:0}}));
+    t.scenes.forEach(sc=>sc.state.home.push({id,x:15+(idx%3)*20,y:88,r:{w:24,h:24,rot:0}}));
     render(); showToast('選手を追加');
   });
   $('addTeamBtn').addEventListener('click',()=>{
@@ -339,7 +374,9 @@
     console.assert(t.players.length>=6,'players >= 6');
     console.assert(sc.home.length>=6 && sc.opponent.length===6,'court markers');
     console.assert(t.opponents[0].position==='LF' && t.opponents[3].position==='BL','opponent order');
-    console.assert(sc.home[0].r.w===18 && sc.home[0].r.h===18,'default circle');
+    console.assert(sc.home.every(p=>Math.abs(p.r.w-p.r.h)<0.5),'home ranges are circles');
+    console.assert(sc.opponent.every(p=>Math.abs(p.r.w-p.r.h)<0.5),'opponent ranges are circles');
+    console.assert(t.opponents[0].position==='BL' && t.opponents[3].position==='LF','opponent front/back order');
   }
   populateSelects(); render(); selfCheck();
 })();
