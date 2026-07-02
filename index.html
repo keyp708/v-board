@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#06a96b" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="styles.css" />
@@ -11,40 +11,48 @@
 <body>
   <main class="app">
     <header class="topbar">
-      <div class="brand"><div class="logo">V</div><div><h1>V Board</h1><p>Visual Volleyball Coaching</p></div></div>
-      <div class="status">保存済み</div>
+      <div class="brand">
+        <div class="logo">V</div>
+        <div><h1>V Board</h1><p>Visual Volleyball Coaching</p></div>
+      </div>
+      <div class="top-actions">
+        <button id="playersListBtn" class="mini-btn">選手</button>
+        <button id="fullscreenBtn" class="mini-btn">全画面</button>
+        <span class="status" id="saveStatus">保存済み</span>
+      </div>
     </header>
 
-    <nav class="mode-tabs">
-      <button class="tab active">🏐 フォーメーション</button>
-      <button class="tab">👤 選手編集</button>
-      <button class="tab">⚙️ 表示設定</button>
-    </nav>
+    <section class="scenario-bar" aria-label="シチュエーション">
+      <button class="scenario active" data-scenario="serveReceive"><span>🏐</span><b>サーブレシーブ</b></button>
+      <button class="scenario" data-scenario="leftAttack"><span>↙</span><b>相手レフト</b></button>
+      <button class="scenario" data-scenario="chance"><span>✨</span><b>チャンス</b></button>
+      <button class="scenario reset" id="resetBtn"><span>↺</span><b>リセット</b></button>
+    </section>
 
-    <section class="court-wrap" id="courtWrap">
-      <div class="court" id="court">
-        <div class="court-label opponent">相手コート</div>
-        <div class="court-label home">自分コート</div>
-        <div class="attack-line top"></div>
-        <div class="attack-line bottom"></div>
-        <div class="net"></div>
-        <div id="coverageLayer"></div>
-        <div id="playersLayer"></div>
-        <div class="ball" id="ball" aria-label="ball"></div>
+    <section class="court-shell">
+      <div class="court-wrap" id="courtWrap">
+        <div class="court" id="court">
+          <div class="court-label opponent">相手コート</div>
+          <div class="court-label home">自分コート</div>
+          <div class="attack-line top"></div>
+          <div class="attack-line bottom"></div>
+          <div class="net"></div>
+          <div id="coverageLayer"></div>
+          <div id="playersLayer"></div>
+          <div class="ball" id="ball" aria-label="ball"></div>
+        </div>
       </div>
-      <button class="float fullscreen" id="fullscreenBtn">⛶<span>全画面</span></button>
-      <button class="float draghint">✋<span>ドラッグ</span></button>
     </section>
 
-    <section class="scene-panel">
-      <div><h2>サーブレシーブ</h2><p id="hint">選手・ボールをドラッグ。選手を選んで2本指ピンチで守備範囲を調整。</p></div>
-      <div class="scene-actions"><button id="prevBtn">←</button><span id="sceneCount">1/1</span><button id="nextBtn">→</button><button id="playBtn">▶</button></div>
+    <section class="coach-card">
+      <div>
+        <h2 id="sceneTitle">サーブレシーブ</h2>
+        <p id="hint">選手・ボールをドラッグ。選手を長押しで情報編集。選択中の守備範囲はハンドルか2本指で調整。</p>
+      </div>
     </section>
-
-    <footer class="bottomnav">
-      <button class="active">▣<span>作戦盤</span></button><button>♡<span>選手</span></button><button>▤<span>練習</span></button><button>▥<span>試合</span></button><button>⚙<span>設定</span></button>
-    </footer>
   </main>
+
+  <div id="modalRoot"></div>
   <script src="app.js"></script>
 </body>
 </html>
