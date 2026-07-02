@@ -2,86 +2,49 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#0ea86d" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#06a96b" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="styles.css" />
   <title>V Board</title>
 </head>
 <body>
-  <div id="app">
+  <main class="app">
     <header class="topbar">
-      <div class="brand">
-        <div class="logo">V</div>
-        <div>
-          <h1>V Board</h1>
-          <p>Visual Volleyball Coaching</p>
-        </div>
-      </div>
-      <div class="top-actions">
-        <button id="saveBtn" class="icon-btn" aria-label="保存">💾<span>保存</span></button>
-        <button id="shareBtn" class="icon-btn" aria-label="共有">↗<span>共有</span></button>
-      </div>
+      <div class="brand"><div class="logo">V</div><div><h1>V Board</h1><p>Visual Volleyball Coaching</p></div></div>
+      <div class="status">保存済み</div>
     </header>
 
-    <nav class="scenario-tabs" id="scenarioTabs"></nav>
-
-    <main class="board-shell">
-      <section class="toolbar-row">
-        <button class="pill primary" id="formationBtn">🏐 フォーメーション</button>
-        <button class="pill" id="editPlayersBtn">👤 選手編集</button>
-        <button class="pill" id="viewSettingsBtn">⚙️ 表示設定</button>
-      </section>
-
-      <section class="court-stage" id="courtStage">
-        <div class="court-label opponent">相手コート</div>
-        <div class="court-label own">自分コート</div>
-        <div class="net"></div>
-        <div class="court" id="court">
-          <div class="attack-line upper"></div>
-          <div class="attack-line lower"></div>
-          <div id="coverageLayer"></div>
-          <div id="playerLayer"></div>
-          <div id="ball" class="ball" title="ボール"><span></span></div>
-        </div>
-        <div class="floating-buttons">
-          <button id="fullscreenBtn">⛶<span>全画面</span></button>
-          <button id="dragModeBtn">✋<span>ドラッグ</span></button>
-        </div>
-      </section>
-
-      <section class="scene-panel">
-        <div>
-          <strong id="sceneName">サーブレシーブ</strong>
-          <p id="sceneHint">ボール位置と守備範囲を調整できます</p>
-        </div>
-        <div class="scene-actions">
-          <button id="prevScene">←</button>
-          <span id="sceneCount">1/5</span>
-          <button id="nextScene">→</button>
-          <button id="playBtn">▶</button>
-        </div>
-      </section>
-
-      <section class="control-card compact-controls">
-      <div class="control-block wide">
-        <span>ボール高さ</span>
-        <input id="heightSlider" type="range" min="0" max="100" value="35" />
-        <b id="heightLabel">35</b>
-      </div>
-      <p class="pinch-note">守備範囲は選手を選んで、コート上で2本指ピンチで調整</p>
-    </section>
-    </main>
-
-    <nav class="bottom-nav">
-      <button class="active">▣<span>作戦盤</span></button>
-      <button>♡<span>選手</span></button>
-      <button>▤<span>練習</span></button>
-      <button>▥<span>試合</span></button>
-      <button>⚙<span>設定</span></button>
+    <nav class="mode-tabs">
+      <button class="tab active">🏐 フォーメーション</button>
+      <button class="tab">👤 選手編集</button>
+      <button class="tab">⚙️ 表示設定</button>
     </nav>
-  </div>
 
+    <section class="court-wrap" id="courtWrap">
+      <div class="court" id="court">
+        <div class="court-label opponent">相手コート</div>
+        <div class="court-label home">自分コート</div>
+        <div class="attack-line top"></div>
+        <div class="attack-line bottom"></div>
+        <div class="net"></div>
+        <div id="coverageLayer"></div>
+        <div id="playersLayer"></div>
+        <div class="ball" id="ball" aria-label="ball"></div>
+      </div>
+      <button class="float fullscreen" id="fullscreenBtn">⛶<span>全画面</span></button>
+      <button class="float draghint">✋<span>ドラッグ</span></button>
+    </section>
+
+    <section class="scene-panel">
+      <div><h2>サーブレシーブ</h2><p id="hint">選手・ボールをドラッグ。選手を選んで2本指ピンチで守備範囲を調整。</p></div>
+      <div class="scene-actions"><button id="prevBtn">←</button><span id="sceneCount">1/1</span><button id="nextBtn">→</button><button id="playBtn">▶</button></div>
+    </section>
+
+    <footer class="bottomnav">
+      <button class="active">▣<span>作戦盤</span></button><button>♡<span>選手</span></button><button>▤<span>練習</span></button><button>▥<span>試合</span></button><button>⚙<span>設定</span></button>
+    </footer>
+  </main>
   <script src="app.js"></script>
 </body>
 </html>

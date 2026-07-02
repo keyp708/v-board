@@ -1,134 +1,34 @@
-const scenarios = [
-  { id:'receive', label:'サーブレシーブ', small:'フォーメーション' },
-  { id:'left', label:'レフト攻撃', small:'相手攻撃' },
-  { id:'right', label:'ライト攻撃', small:'相手攻撃' },
-  { id:'chance', label:'チャンス', small:'切替' },
-  { id:'free', label:'フリー', small:'つなぎ' },
-];
-const ownColors = ['red','blue','yellow','green','purple','orange'];
-const initialPlayers = [
-  {id:'o4',team:'opponent',main:'LF',sub:'',x:25,y:17,rx:10,ry:10},
-  {id:'o3',team:'opponent',main:'MB',sub:'',x:50,y:17,rx:10,ry:10},
-  {id:'o2',team:'opponent',main:'RF',sub:'',x:75,y:17,rx:10,ry:10},
-  {id:'o5',team:'opponent',main:'OH',sub:'',x:25,y:33,rx:10,ry:10},
-  {id:'o6',team:'opponent',main:'S',sub:'',x:50,y:33,rx:10,ry:10},
-  {id:'o1',team:'opponent',main:'OP',sub:'',x:75,y:33,rx:10,ry:10},
-  {id:'p1',team:'own',main:'1',sub:'リオ',x:23,y:62,rx:10,ry:10,color:'red'},
-  {id:'p2',team:'own',main:'2',sub:'ユイ',x:50,y:62,rx:10,ry:10,color:'blue'},
-  {id:'p3',team:'own',main:'3',sub:'サクラ',x:77,y:62,rx:10,ry:10,color:'yellow'},
-  {id:'p4',team:'own',main:'4',sub:'ミオ',x:23,y:82,rx:10,ry:10,color:'green'},
-  {id:'p5',team:'own',main:'5',sub:'アヤ',x:50,y:82,rx:10,ry:10,color:'purple'},
-  {id:'p6',team:'own',main:'6',sub:'ハナ',x:77,y:82,rx:10,ry:10,color:'orange'},
-];
-let state = load() || { scenario:'receive', players: initialPlayers, selectedId:'p2', ball:{x:50,y:50,h:35}, sceneIndex:0, rangeShape:'circle'};
 const court = document.getElementById('court');
 const coverageLayer = document.getElementById('coverageLayer');
-const playerLayer = document.getElementById('playerLayer');
+const playersLayer = document.getElementById('playersLayer');
 const ball = document.getElementById('ball');
-function save(){ localStorage.setItem('vboard-sprint22', JSON.stringify(state)); document.body.classList.add('saved'); setTimeout(()=>document.body.classList.remove('saved'),400)}
-function load(){ try{return JSON.parse(localStorage.getItem('vboard-sprint22'))}catch{return null} }
-function pctToPx(x,y){ const r=court.getBoundingClientRect(); return {x:r.width*x/100,y:r.height*y/100}; }
-function pxToPct(clientX,clientY){ const r=court.getBoundingClientRect(); return {x:Math.max(2,Math.min(98,(clientX-r.left)/r.width*100)), y:Math.max(2,Math.min(98,(clientY-r.top)/r.height*100))};}
-function renderTabs(){ const el=document.getElementById('scenarioTabs'); el.innerHTML=''; scenarios.forEach(s=>{const b=document.createElement('button'); b.className='tab'+(state.scenario===s.id?' active':''); b.innerHTML=`<small>${s.small}</small>${s.label}`; b.onclick=()=>{state.scenario=s.id; save(); renderTabs();}; el.appendChild(b);}); }
-function render(){
-  renderTabs();
-  coverageLayer.innerHTML='';
-  playerLayer.innerHTML='';
-  state.players.forEach(p=>{
-    const pos=pctToPx(p.x,p.y);
-    const cov=document.createElement('div');
-    cov.className='coverage '+(p.id===state.selectedId?' selected':'');
-    cov.style.left=pos.x+'px';
-    cov.style.top=pos.y+'px';
-    const w=p.rx*2;
-    const h=p.ry*2;
-    cov.style.width=w+'%';
-    cov.style.height=h+'%';
-    cov.style.color=p.team==='opponent'?'#2f3436':colorFor(p);
-    coverageLayer.appendChild(cov);
-
-    const el=document.createElement('div');
-    el.className=`player ${p.team} ${p.color||''}`;
-    el.dataset.id=p.id;
-    el.style.left=pos.x+'px';
-    el.style.top=pos.y+'px';
-    el.innerHTML=`<span class="main">${p.main}</span><span class="sub">${p.team==='opponent'?p.main:p.sub}</span>`;
-    if(p.id===state.selectedId) el.classList.add('selected');
-    playerLayer.appendChild(el);
-  });
-  const bp=pctToPx(state.ball.x,state.ball.y);
-  ball.style.left=bp.x+'px';
-  ball.style.top=bp.y+'px';
-  const h=state.ball.h;
-  ball.style.setProperty('--shadow-size', `${54 - h*0.25}px`);
-  ball.style.setProperty('--height-shadow', `${9 + h*0.18}px`);
-  ball.style.setProperty('--ball-shadow-y', `${24 + h*0.12}px`);
-  ball.style.setProperty('--ball-shadow-blur', `${12 + h*0.12}px`);
-  ball.style.setProperty('--ball-shadow-alpha', `${0.28 - h*0.0014}`);
-  document.getElementById('heightSlider').value=h;
-  document.getElementById('heightLabel').textContent=h;
-}
-function colorFor(p){ const map={red:'#ff3b3b',blue:'#1a8df0',yellow:'#f6a400',green:'#19b95b',purple:'#8c43df',orange:'#ff6b0a'}; return map[p.color]||'#444';}
-function selected(){ return state.players.find(p=>p.id===state.selectedId) || state.players[6]; }
-function selectedElement(){ return playerLayer.querySelector(`[data-id="${state.selectedId}"]`); }
-function updateLivePosition(p){
-  const el=playerLayer.querySelector(`[data-id="${p.id}"]`);
-  const idx=state.players.findIndex(x=>x.id===p.id);
-  const cov=coverageLayer.children[idx];
-  const pos=pctToPx(p.x,p.y);
-  if(el){ el.style.left=pos.x+'px'; el.style.top=pos.y+'px'; }
-  if(cov){ cov.style.left=pos.x+'px'; cov.style.top=pos.y+'px'; }
-}
-let dragTarget=null;
-let dragPointerId=null;
-playerLayer.addEventListener('pointerdown', e=>{
-  const el=e.target.closest('.player');
-  if(!el) return;
-  e.preventDefault();
-  const p=state.players.find(x=>x.id===el.dataset.id);
-  if(!p) return;
-  state.selectedId=p.id;
-  dragTarget=p;
-  dragPointerId=e.pointerId;
-  el.setPointerCapture(e.pointerId);
-  playerLayer.querySelectorAll('.player').forEach(n=>n.classList.remove('selected'));
-  el.classList.add('selected','dragging');
-});
-playerLayer.addEventListener('pointermove', e=>{
-  if(!dragTarget || e.pointerId!==dragPointerId) return;
-  e.preventDefault();
-  const n=pxToPct(e.clientX,e.clientY);
-  dragTarget.x=n.x;
-  dragTarget.y=n.y;
-  updateLivePosition(dragTarget);
-});
-function finishDrag(){
-  if(!dragTarget) return;
-  const el=selectedElement();
-  if(el) el.classList.remove('dragging');
-  save();
-  dragTarget=null;
-  dragPointerId=null;
-  render();
-}
-playerLayer.addEventListener('pointerup', finishDrag);
-playerLayer.addEventListener('pointercancel', finishDrag);
-let ballActive=false; ball.addEventListener('pointerdown',e=>{ballActive=true;ball.setPointerCapture(e.pointerId)}); ball.addEventListener('pointermove',e=>{if(!ballActive)return; const n=pxToPct(e.clientX,e.clientY); state.ball.x=n.x; state.ball.y=n.y; save(); render();}); ball.addEventListener('pointerup',()=>{ballActive=false;save();render();});
-function setUniformRange(value){
-  const p=selected();
-  p.rx=Math.max(7,Math.min(28,value));
-  p.ry=p.rx;
-  save(); render();
-}
-document.getElementById('heightSlider').oninput=e=>{state.ball.h=+e.target.value;save();render()};
-document.getElementById('fullscreenBtn').onclick=()=>{document.body.classList.toggle('fullscreen')};document.getElementById('saveBtn').onclick=()=>save();document.getElementById('shareBtn').onclick=async()=>{ if(navigator.share) await navigator.share({title:'V Board',url:location.href});};
-document.getElementById('prevScene').onclick=()=>{state.sceneIndex=Math.max(0,state.sceneIndex-1);document.getElementById('sceneCount').textContent=`${state.sceneIndex+1}/5`;save()};document.getElementById('nextScene').onclick=()=>{state.sceneIndex=Math.min(4,state.sceneIndex+1);document.getElementById('sceneCount').textContent=`${state.sceneIndex+1}/5`;save()};document.getElementById('playBtn').onclick=()=>{document.getElementById('sceneHint').textContent='再生イメージ：次Sprintで動きを追加します';setTimeout(()=>document.getElementById('sceneHint').textContent='ボール位置と守備範囲を調整できます',1600)};
-// Two finger pinch on selected player's coverage
-let pinchStart=null; court.addEventListener('touchstart',e=>{ if(e.touches.length===2){ e.preventDefault(); const [a,b]=e.touches; const d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY); const p=selected(); pinchStart={d,rx:p.rx,ry:p.ry}; } },{passive:false});
-court.addEventListener('touchmove',e=>{ if(e.touches.length===2 && pinchStart){ e.preventDefault(); const [a,b]=e.touches; const d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY); const scale=d/pinchStart.d; const p=selected(); const m=Math.max(7,Math.min(28,Math.max(pinchStart.rx,pinchStart.ry)*scale)); p.rx=m; p.ry=m save(); render(); } },{passive:false});
-court.addEventListener('touchend',()=>pinchStart=null,{passive:false});
-// 端末側のピンチズームを抑止。守備範囲の2本指操作を優先します。
-document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
-document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
-document.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});
+const hint = document.getElementById('hint');
+const storeKey = 'vboard-sprint2-3';
+const colors = ['244,45,45','30,145,235','245,166,18','22,174,93','151,82,230','244,111,20'];
+const defaults = {
+  players: [
+    {id:'o1',side:'opp',label:'LF',x:28,y:18,rw:15,rh:12},{id:'o2',side:'opp',label:'MB',x:50,y:18,rw:15,rh:12},{id:'o3',side:'opp',label:'RF',x:72,y:18,rw:15,rh:12},
+    {id:'o4',side:'opp',label:'OH',x:28,y:34,rw:15,rh:12},{id:'o5',side:'opp',label:'S',x:50,y:34,rw:15,rh:12},{id:'o6',side:'opp',label:'OP',x:72,y:34,rw:15,rh:12},
+    {id:'h1',side:'home',num:1,name:'リオ',x:24,y:60,rw:13,rh:10,color:0},{id:'h2',side:'home',num:2,name:'ユイ',x:50,y:60,rw:13,rh:10,color:1},{id:'h3',side:'home',num:3,name:'サクラ',x:76,y:60,rw:13,rh:10,color:2},
+    {id:'h4',side:'home',num:4,name:'ミオ',x:24,y:78,rw:13,rh:10,color:3},{id:'h5',side:'home',num:5,name:'アヤ',x:50,y:78,rw:13,rh:10,color:4},{id:'h6',side:'home',num:6,name:'ハナ',x:76,y:78,rw:13,rh:10,color:5}
+  ],
+  ball:{x:50,y:50,h:80}
+};
+let state = load();
+let selectedId = 'h2';
+let dragTarget = null;
+let pinch = null;
+function load(){try{return JSON.parse(localStorage.getItem(storeKey)) || structuredClone(defaults)}catch{return structuredClone(defaults)}}
+function save(){localStorage.setItem(storeKey,JSON.stringify(state))}
+function render(){coverageLayer.innerHTML='';playersLayer.innerHTML='';state.players.forEach(p=>{const cov=document.createElement('div');cov.className='coverage';const rgb=p.side==='opp'?'34,38,39':colors[p.color];cov.style.setProperty('--rgb',rgb);cov.style.left=p.x+'%';cov.style.top=p.y+'%';cov.style.width=p.rw*2+'%';cov.style.height=p.rh*2+'%';coverageLayer.appendChild(cov);const el=document.createElement('div');el.className='player '+(p.side==='opp'?'opp':'home'+p.num)+(p.id===selectedId?' selected':'');el.dataset.id=p.id;el.style.left=p.x+'%';el.style.top=p.y+'%';el.innerHTML = p.side==='opp' ? `<div><div class="num">${p.label}</div><div class="name">${p.label}</div></div>` : `<div><div class="num">${p.num}</div><div class="name">${p.name}</div></div>`;playersLayer.appendChild(el)});ball.style.left=state.ball.x+'%';ball.style.top=state.ball.y+'%';const y=28+state.ball.h/6; ball.style.setProperty('--shadowY',y+'px');ball.style.setProperty('--shadowBlur',(18+state.ball.h/8)+'px')}
+function pos(e){const r=court.getBoundingClientRect();return {x:Math.max(2,Math.min(98,(e.clientX-r.left)/r.width*100)),y:Math.max(2,Math.min(98,(e.clientY-r.top)/r.height*100))}}
+function dist(a,b){return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)}
+function findPlayer(id){return state.players.find(p=>p.id===id)}
+court.addEventListener('pointerdown',e=>{const player=e.target.closest('.player'); if(player){selectedId=player.dataset.id; dragTarget={type:'player',id:selectedId,pointerId:e.pointerId}; player.setPointerCapture(e.pointerId); render(); return} if(e.target===ball){dragTarget={type:'ball',pointerId:e.pointerId}; ball.setPointerCapture(e.pointerId); return}});
+court.addEventListener('pointermove',e=>{if(!dragTarget || dragTarget.pointerId!==e.pointerId)return; const p=pos(e); if(dragTarget.type==='ball'){state.ball.x=p.x;state.ball.y=p.y}else{const pl=findPlayer(dragTarget.id);pl.x=p.x;pl.y=p.y} save(); render()});
+court.addEventListener('pointerup',()=>{dragTarget=null});
+court.addEventListener('touchstart',e=>{if(e.touches.length===2 && selectedId){const pl=findPlayer(selectedId); pinch={d:dist(e.touches[0],e.touches[1]),rw:pl.rw,rh:pl.rh}; e.preventDefault()}},{passive:false});
+court.addEventListener('touchmove',e=>{if(e.touches.length===2 && pinch && selectedId){const pl=findPlayer(selectedId);const scale=dist(e.touches[0],e.touches[1])/pinch.d;pl.rw=Math.max(7,Math.min(28,pinch.rw*scale));pl.rh=Math.max(6,Math.min(24,pinch.rh*scale));save();render();hint.textContent='守備範囲を調整中';e.preventDefault()}},{passive:false});
+court.addEventListener('touchend',()=>{pinch=null;hint.textContent='選手・ボールをドラッグ。選手を選んで2本指ピンチで守備範囲を調整。'});
+document.getElementById('fullscreenBtn').addEventListener('click',()=>{document.documentElement.requestFullscreen?.()});
 render();
