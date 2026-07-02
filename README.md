@@ -1,33 +1,21 @@
-# V Board Sprint 1
+# V Board Sprint2
 
-小学生バレーボールのフォーメーション作戦盤です。
+UI改善版です。
 
-## 使い方
+## 変更点
+- 自分/相手コートに6人ずつ表示
+- 相手選手は黒/グレー、マーク内にポジション表示
+- 自分選手は大きめマーク、マーク内に番号とニックネーム表示
+- コート外を青、自コート/相手コートをオレンジ基調に変更
+- ボールに影と高さスライダーを追加
+- 守備範囲を楕円/丸で切替
+- 2本指ピンチで選択選手の守備範囲を拡大/縮小
+- 全画面モード追加
 
-1. このフォルダの中身を GitHub の `v-board` リポジトリ直下にアップロードします。
-2. Vercel で `v-board` を Import します。
-3. Framework Preset は `Other` のまま Deploy します。
-
-## 含まれる機能
-
-- 縦コート表示
-- 6人の選手配置
-- ドラッグ / タップ選択で移動
-- 守備範囲の表示
-- ボール配置
-- シーン追加・切替
-- 簡易再生
-- 「誰が取る？」判定
-- 端末内自動保存
-- PWA用 manifest
-
-## GitHubに入れるファイル
-
-- `index.html`
-- `styles.css`
-- `app.js`
-- `manifest.webmanifest`
-- `icon.svg`
-- `README.md`
-
-ZIPファイルそのものはアップロードしないでください。
+## GitHubへアップロードするファイル
+- index.html
+- styles.css
+- app.js
+- manifest.webmanifest
+- icon.svg
+- README.md

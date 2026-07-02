@@ -1,12 +1,1 @@
-{
-  "name": "V Board",
-  "short_name": "V Board",
-  "description": "小学生バレーボールのフォーメーション作戦盤",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#f6f8f5",
-  "theme_color": "#00a66a",
-  "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
-  ]
-}
+{"name":"V Board","short_name":"V Board","start_url":"/","display":"standalone","background_color":"#eef7f4","theme_color":"#08ad72","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml"}]}
