@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0ea86d" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="styles.css" />
@@ -63,28 +63,14 @@
         </div>
       </section>
 
-      <section class="control-card">
-        <div class="control-block">
-          <span>守備範囲</span>
-          <div class="segmented">
-            <button id="ellipseBtn" class="active">楕円</button>
-            <button id="circleBtn">丸</button>
-          </div>
-        </div>
-        <div class="control-block">
-          <span>横幅</span>
-          <div class="stepper"><button id="rangeWMinus">−</button><b id="rangeWLabel">100%</b><button id="rangeWPlus">＋</button></div>
-        </div>
-        <div class="control-block">
-          <span>縦幅</span>
-          <div class="stepper"><button id="rangeHMinus">−</button><b id="rangeHLabel">100%</b><button id="rangeHPlus">＋</button></div>
-        </div>
-        <div class="control-block">
-          <span>ボール高さ</span>
-          <input id="heightSlider" type="range" min="0" max="100" value="35" />
-          <b id="heightLabel">35</b>
-        </div>
-      </section>
+      <section class="control-card compact-controls">
+      <div class="control-block wide">
+        <span>ボール高さ</span>
+        <input id="heightSlider" type="range" min="0" max="100" value="35" />
+        <b id="heightLabel">35</b>
+      </div>
+      <p class="pinch-note">守備範囲は選手を選んで、コート上で2本指ピンチで調整</p>
+    </section>
     </main>
 
     <nav class="bottom-nav">
