@@ -12,7 +12,7 @@
   <div id="app" class="app">
     <header class="topbar">
       <button class="icon-btn" id="teamBtn" aria-label="team">A</button>
-      <button class="scene-pill" id="sceneBtn"><span id="sceneName">相手レフト</span><span>▼</span></button>
+      <button class="scene-pill" id="sceneBtn"><span id="sceneName">サーブレシーブ</span><span>▼</span></button>
       <button class="icon-btn text" id="playersBtn">選手</button>
     </header>
 
@@ -37,7 +37,7 @@
         <button id="sceneAddBtn">＋<small>シーン</small></button>
         <button id="resetBtn">⌫<small>リセット</small></button>
       </div>
-      <p class="hint">選手・ボールをドラッグ / 選手長押しで編集 / 範囲の白い点で調整</p>
+      <p class="hint">選手・ボールをドラッグ / 長押しで選手編集 / 範囲の白い点で調整</p>
     </main>
 
     <aside class="sheet scene-sheet" id="sceneSheet">
@@ -49,6 +49,7 @@
     <aside class="sheet player-sheet" id="playerSheet">
       <div class="sheet-head"><strong>選手一覧</strong><button class="close" data-close="playerSheet">×</button></div>
       <div id="playerList" class="player-list"></div>
+      <div class="sheet-actions"><button id="addPlayerBtn">＋ 選手追加</button></div>
     </aside>
 
     <aside class="sheet team-sheet" id="teamSheet">
@@ -64,7 +65,7 @@
       <div class="tabs"><button class="active" data-tab="public">表情報</button><button data-tab="coach">コーチ専用</button></div>
       <div class="form-grid" id="publicTab">
         <label>ニックネーム<input id="editNick" /></label>
-        <label>背番号/表記<input id="editNo" /></label>
+        <label>背番号<input id="editNo" /></label>
         <label>学年<input id="editGrade" placeholder="4年" /></label>
         <label>身長<input id="editHeight" placeholder="155cm" /></label>
         <label>性別<select id="editGender"><option>未設定</option><option>女</option><option>男</option></select></label>
