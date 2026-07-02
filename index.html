@@ -2,110 +2,81 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
-  <meta name="theme-color" content="#1677a8" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#063b55" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
   <title>V Board</title>
 </head>
 <body>
   <div id="app" class="app">
-    <header class="topbar" id="topbar">
-      <button class="ghost" id="teamBtn" aria-label="チーム">A</button>
-      <button class="scene-pill" id="sceneBtn"><span id="sceneName">サーブレシーブ</span><small>▼</small></button>
-      <button class="ghost" id="playersBtn" aria-label="選手">選手</button>
+    <header class="topbar">
+      <button class="icon-btn" id="teamBtn" aria-label="team">A</button>
+      <button class="scene-pill" id="sceneBtn"><span id="sceneName">相手レフト</span><span>▼</span></button>
+      <button class="icon-btn text" id="playersBtn">選手</button>
     </header>
 
     <main class="board-wrap" id="boardWrap">
       <section class="court-shell" id="courtShell">
-        <div class="court" id="court" aria-label="バレーコート">
-          <div class="court-half opponent-half"></div>
-          <div class="court-half own-half"></div>
-          <div class="court-line net-line"></div>
-          <div class="court-line opp-attack-line"></div>
-          <div class="court-line own-attack-line"></div>
-          <div class="court-label opp-label">相手コート</div>
-          <div class="court-label own-label">自分コート</div>
-          <div id="rangeLayer" class="range-layer"></div>
-          <div id="playerLayer" class="player-layer"></div>
-          <div id="ball" class="ball"><span></span></div>
+        <div class="court" id="court">
+          <div class="court-label opponent">相手コート</div>
+          <div class="court-label home">自分コート</div>
+          <div class="line net-line"></div>
+          <div class="net"></div>
+          <div class="line attack-line top"></div>
+          <div class="line attack-line bottom"></div>
+          <div id="zones"></div>
+          <div id="tokens"></div>
+          <div id="ball" class="ball" aria-label="ball"></div>
         </div>
       </section>
+      <div class="tool-row">
+        <button id="undoBtn">↶<small>UNDO</small></button>
+        <button id="ballBtn">●<small>ボール</small></button>
+        <button id="rangeBtn">◌<small>範囲</small></button>
+        <button id="sceneAddBtn">＋<small>シーン</small></button>
+        <button id="resetBtn">⌫<small>リセット</small></button>
+      </div>
+      <p class="hint">選手・ボールをドラッグ / 選手長押しで編集 / 範囲の白い点で調整</p>
     </main>
 
-    <div class="float-tools">
-      <button id="rangeToggle" class="tool active">範囲</button>
-      <button id="ballHeightBtn" class="tool">高さ <span id="heightText">低</span></button>
-    </div>
-
-    <aside class="drawer left" id="teamDrawer" aria-hidden="true">
-      <div class="drawer-card">
-        <div class="grab"></div>
-        <h2>チーム</h2>
-        <div id="teamList" class="list"></div>
-        <button class="primary full" id="addTeamBtn">＋ チーム追加</button>
-      </div>
+    <aside class="sheet scene-sheet" id="sceneSheet">
+      <div class="sheet-head"><strong>シーン</strong><button class="close" data-close="sceneSheet">×</button></div>
+      <div id="sceneList" class="list"></div>
+      <div class="sheet-actions"><button id="newSceneBtn">＋ シーン追加</button></div>
     </aside>
 
-    <aside class="drawer right" id="playerDrawer" aria-hidden="true">
-      <div class="drawer-card">
-        <div class="grab"></div>
-        <h2>選手一覧</h2>
-        <div id="playerList" class="list"></div>
-      </div>
+    <aside class="sheet player-sheet" id="playerSheet">
+      <div class="sheet-head"><strong>選手一覧</strong><button class="close" data-close="playerSheet">×</button></div>
+      <div id="playerList" class="player-list"></div>
     </aside>
 
-    <aside class="sheet" id="sceneSheet" aria-hidden="true">
-      <div class="sheet-card">
-        <div class="grab"></div>
-        <div class="sheet-head">
-          <h2>シーン</h2>
-          <button class="primary" id="addSceneBtn">＋追加</button>
-        </div>
-        <div id="sceneList" class="list"></div>
-      </div>
+    <aside class="sheet team-sheet" id="teamSheet">
+      <div class="sheet-head"><strong>チーム</strong><button class="close" data-close="teamSheet">×</button></div>
+      <div id="teamList" class="list"></div>
+      <div class="sheet-actions"><button id="addTeamBtn">＋ チーム追加</button></div>
     </aside>
 
-    <aside class="sheet" id="playerSheet" aria-hidden="true">
-      <div class="sheet-card player-editor-card">
-        <div class="grab"></div>
-        <div class="sheet-head">
-          <h2 id="editorTitle">選手情報</h2>
-          <button class="primary" id="savePlayerBtn">保存</button>
-        </div>
-        <div class="tabs">
-          <button class="tab active" data-tab="public">表情報</button>
-          <button class="tab" data-tab="coach">コーチ専用</button>
-        </div>
-        <div id="publicTab" class="form-grid">
-          <label>ニックネーム<input id="editNick" /></label>
-          <label>背番号<input id="editNumber" inputmode="numeric" /></label>
-          <label>年齢<input id="editAge" inputmode="numeric" /></label>
-          <label>学年<input id="editGrade" placeholder="4年" /></label>
-          <label>性別<select id="editGender"><option>未設定</option><option>女</option><option>男</option><option>その他</option></select></label>
-          <label>身長(cm)<input id="editHeight" inputmode="decimal" /></label>
-          <label>ポジション<input id="editPosition" placeholder="OH / S など" /></label>
-        </div>
-        <div id="coachTab" class="form-grid hidden">
-          <label>向上心<select id="editAmbition"><option>未設定</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
-          <label>積極性<select id="editAggressive"><option>未設定</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
-          <label>協調性<select id="editTeamwork"><option>未設定</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
-          <label>理解力<select id="editIq"><option>未設定</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
-          <label class="wide">コーチメモ<textarea id="editMemo" rows="4" placeholder="監督・コーチだけが見るメモ"></textarea></label>
-        </div>
+    <div class="modal-backdrop" id="editBackdrop"></div>
+    <section class="bottom-sheet" id="editSheet">
+      <div class="handle"></div>
+      <h2 id="editTitle">選手編集</h2>
+      <div class="tabs"><button class="active" data-tab="public">表情報</button><button data-tab="coach">コーチ専用</button></div>
+      <div class="form-grid" id="publicTab">
+        <label>ニックネーム<input id="editNick" /></label>
+        <label>背番号/表記<input id="editNo" /></label>
+        <label>学年<input id="editGrade" placeholder="4年" /></label>
+        <label>身長<input id="editHeight" placeholder="155cm" /></label>
+        <label>性別<select id="editGender"><option>未設定</option><option>女</option><option>男</option></select></label>
+        <label>ポジション<input id="editPos" placeholder="S/OH/MB" /></label>
       </div>
-    </aside>
-
-    <aside class="sheet small" id="heightSheet" aria-hidden="true">
-      <div class="sheet-card">
-        <div class="grab"></div>
-        <h2>ボールの高さ</h2>
-        <input id="heightRange" type="range" min="0" max="100" value="25" />
+      <div class="form-grid hidden" id="coachTab">
+        <label>性格メモ<textarea id="editPersonality" placeholder="向上心・積極性・協調性など"></textarea></label>
+        <label>コーチメモ<textarea id="editCoach" placeholder="監督・コーチだけが見るメモ"></textarea></label>
       </div>
-    </aside>
-
-    <div class="toast" id="toast">保存しました</div>
+      <div class="sheet-actions"><button id="cancelEdit">閉じる</button><button class="primary" id="saveEdit">保存</button></div>
+    </section>
   </div>
-  <script src="./app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
