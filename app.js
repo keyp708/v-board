@@ -1,38 +1,345 @@
-const POS=[
-  {key:'LF',jp:'レフト',x:.24,y:.66},{key:'S',jp:'セッター',x:.50,y:.66},{key:'RF',jp:'ライト',x:.76,y:.66},
-  {key:'BL',jp:'Bレフト',x:.24,y:.82},{key:'C',jp:'センター',x:.50,y:.82},{key:'BR',jp:'Bライト',x:.76,y:.82}
-];
-const OPP=[
-  {key:'LF',jp:'レフト',x:.24,y:.18},{key:'S',jp:'セッター',x:.50,y:.18},{key:'RF',jp:'ライト',x:.76,y:.18},
-  {key:'BL',jp:'Bレフト',x:.24,y:.34},{key:'C',jp:'センター',x:.50,y:.34},{key:'BR',jp:'Bライト',x:.76,y:.34}
-];
-const H=['top','right','bottom','left','scale','rot'];
-const initial=()=>({
- teams:[{id:'A',name:'A'}],team:'A',scene:'サーブレシーブ',ballType:'molten',
- scenes:{'A::サーブレシーブ':{players:POS.map((p,i)=>({id:'p'+i,team:'my',pos:p.key,posJp:p.jp,name:'',grade:'',height:'',age:'',x:p.x,y:p.y,rx:.105,ry:.105,rot:0})).concat(OPP.map((p,i)=>({id:'o'+i,team:'opp',pos:p.key,posJp:p.jp,name:'',x:p.x,y:p.y,rx:.095,ry:.095,rot:0}))),ball:{x:.5,y:.5,h:45}}}
-});
-let state=load();let selected='p1',mode='select',subPick=null,drag=null,longTimer=null;const $=q=>document.querySelector(q), app=$('#app');
-function load(){try{return JSON.parse(localStorage.vboard12)||initial()}catch(e){return initial()}}
-function save(){localStorage.vboard12=JSON.stringify(state)}
-const key=()=>`${state.team}::${state.scene}`; const cur=()=>state.scenes[key()]||(state.scenes[key()]=JSON.parse(JSON.stringify(state.scenes['A::サーブレシーブ'])));
-function jp(key){return ({LF:'レフト',S:'セッター',RF:'ライト',BL:'Bレフト',C:'センター',BR:'Bライト'}[key]||key)}
-function render(){let c=cur();app.innerHTML=`<div class="app"><div class="top"><button class="team" id="teamBtn">${state.team}</button><button class="scene" id="sceneBtn">${state.scene} ▼</button><button class="playersBtn" id="playersBtn">選手</button></div><div class="stage"><button class="sideHandle leftHandle" id="teamsHandle">‹</button><button class="sideHandle rightHandle" id="playersHandle">›</button><div class="courtWrap"><div class="court" id="court"><div class="half oppHalf"><span class="label oppLabel">相手コート</span></div><div class="half myHalf"></div><div class="attack attackTop"></div><div class="attack attackBottom"></div><div class="centerLine"></div><div class="net"></div></div></div><div class="bottomBar"><button class="barBtn" id="undo"><b>↶</b>UNDO</button><button class="barBtn" id="rangeMode"><b>◌</b>範囲</button><button class="barBtn" id="subMode"><b>⇄</b>交代</button><button class="barBtn" id="sceneAdd"><b>＋</b>シーン</button><button class="barBtn" id="reset"><b>⌫</b>リセット</button></div></div><div class="drawer right" id="playerDrawer"><button class="close" data-close>×</button><h2>選手一覧</h2><div class="list">${c.players.filter(p=>p.team==='my').map((p,i)=>`<div class="row" data-edit="${p.id}"><span class="num">${i+1}</span><div><b>${p.name||jp(p.pos)}</b><small>${jp(p.pos)} ${p.grade?'/ '+p.grade+'年':''} ${p.height?'/ '+p.height+'cm':''}</small></div><span>›</span></div>`).join('')}<button class="add" id="addPlayer">＋ 選手追加</button></div></div><div class="drawer left" id="teamDrawer"><button class="close" data-close>×</button><h2>チーム</h2><div class="list">${state.teams.map(t=>`<div class="row" data-team="${t.id}"><span class="num">${t.id}</span><div><b>${t.name}</b><small>タップで切替</small></div><span>›</span></div>`).join('')}<button class="add" id="addTeam">＋ チーム追加</button></div></div><div class="sheet" id="sheet"></div></div>`;
- const court=$('#court'); c.players.forEach(p=>{addRange(court,p);addPlayer(court,p)}); addBall(court,c.ball); addHandles(); bind();}
-function addRange(court,p){const d=document.createElement('div');d.className='range '+(p.id===selected?'selected':'');d.dataset.range=p.id;Object.assign(d.style,{left:p.x*100+'%',top:p.y*100+'%',width:p.rx*200+'%',height:p.ry*100+'%'});d.style.setProperty('--rot',p.rot+'deg');court.appendChild(d)}
-function addPlayer(court,p){const el=document.createElement('div');el.className='player '+(p.team==='opp'?'opp ':'')+(p.id===selected?'selected':'');el.dataset.id=p.id;let name=p.team==='opp'?jp(p.pos):(p.name||'');let pos=p.team==='opp'?'':jp(p.pos); if(!name && p.team==='my'){name=jp(p.pos);pos=''}
- el.innerHTML=`<div class="pText"><span class="pName ${p.team==='opp'?'onlyPos':''}">${name}</span>${pos?`<span class="pPos">${pos}</span>`:''}</div>`;Object.assign(el.style,{left:p.x*100+'%',top:p.y*100+'%'});court.appendChild(el)}
-function addBall(court,b){const el=document.createElement('div');el.id='ball';el.className='ball '+state.ballType;el.dataset.brand=state.ballType==='molten'?'molten':'MIKASA';Object.assign(el.style,{left:b.x*100+'%',top:b.y*100+'%',width:(42+b.h/10)+'px',height:(42+b.h/10)+'px'});court.appendChild(el)}
-function addHandles(){const p=cur().players.find(x=>x.id===selected); if(!p) return; const court=$('#court'), r=court.getBoundingClientRect(); const cx=p.x*r.width,cy=p.y*r.height, rx=p.rx*r.width, ry=p.ry*r.height; const pts={top:[cx,cy-ry],right:[cx+rx,cy],bottom:[cx,cy+ry],left:[cx-rx,cy],scale:[cx+rx*.72,cy+ry*.72],rot:[cx+rx*.9,cy-ry*.9]}; H.forEach(h=>{let d=document.createElement('div');d.className='handleDot '+(h==='rot'?'rotDot':'');d.dataset.handle=h;d.style.left=pts[h][0]+'px';d.style.top=pts[h][1]+'px';court.appendChild(d)})}
-function bind(){document.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeDrawers); $('#playersBtn').onclick=()=>openDrawer('right'); $('#playersHandle').onclick=()=>openDrawer('right'); $('#teamsHandle').onclick=()=>openDrawer('left'); $('#teamBtn').onclick=()=>openDrawer('left'); $('#sceneBtn').onclick=sceneMenu; $('#sceneAdd').onclick=()=>{let n=prompt('シーン名','新しいシーン'); if(n){state.scene=n; cur(); save(); render()}}; $('#reset').onclick=()=>{if(confirm('現在のシーンを初期化しますか？')){delete state.scenes[key()];cur();save();render()}}; $('#subMode').onclick=()=>{mode='sub';subPick=null;toast('交代する2人を順にタップ')}; $('#rangeMode').onclick=()=>toast('白い点で範囲を調整できます'); $('#addPlayer').onclick=()=>addNewPlayer(); $('#addTeam').onclick=()=>addNewTeam(); document.querySelectorAll('[data-edit]').forEach(r=>r.onclick=()=>editPlayer(r.dataset.edit)); document.querySelectorAll('[data-team]').forEach(r=>r.onclick=()=>{state.team=r.dataset.team;cur();save();render()}); bindCourt();}
-function bindCourt(){const court=$('#court'); court.querySelectorAll('.player').forEach(el=>{el.addEventListener('pointerdown',ev=>{ev.preventDefault();const id=el.dataset.id; selected=id; const p=cur().players.find(x=>x.id===id); longTimer=setTimeout(()=>editPlayer(id),650); drag={type:'player',id,dx:0,dy:0}; el.setPointerCapture(ev.pointerId); render()})}); court.querySelectorAll('.handleDot').forEach(el=>{el.addEventListener('pointerdown',ev=>{ev.preventDefault();drag={type:'handle',h:el.dataset.handle};el.setPointerCapture(ev.pointerId)})}); $('#ball').addEventListener('pointerdown',ev=>{ev.preventDefault();drag={type:'ball'};$('#ball').setPointerCapture(ev.pointerId)}); court.addEventListener('pointermove',move); court.addEventListener('pointerup',up); court.addEventListener('pointercancel',up)}
-function posFrom(ev){const r=$('#court').getBoundingClientRect();return {x:Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(ev.clientY-r.top)/r.height)),r}}
-function move(ev){if(!drag)return;clearTimeout(longTimer);let c=cur(), pt=posFrom(ev); if(drag.type==='player'){let p=c.players.find(x=>x.id===drag.id);p.x=pt.x;p.y=pt.y;save();quickUpdate()} if(drag.type==='ball'){c.ball.x=pt.x;c.ball.y=pt.y;save();quickUpdate()} if(drag.type==='handle'){let p=c.players.find(x=>x.id===selected);let dx=pt.x-p.x, dy=pt.y-p.y; if(drag.h==='right'||drag.h==='left')p.rx=Math.max(.07,Math.abs(dx)); if(drag.h==='top'||drag.h==='bottom')p.ry=Math.max(.07,Math.abs(dy)); if(drag.h==='scale'){let v=Math.max(.08,Math.hypot(dx,dy));p.rx=v;p.ry=v} if(drag.h==='rot')p.rot=Math.atan2(dy,dx)*180/Math.PI; save();quickUpdate()}}
-function up(ev){if(drag&&drag.type==='player'&&mode==='sub'){if(!subPick)subPick=drag.id;else if(subPick!==drag.id){let c=cur(),a=c.players.find(p=>p.id===subPick),b=c.players.find(p=>p.id===drag.id);[a.x,b.x]=[b.x,a.x];[a.y,b.y]=[b.y,a.y];mode='select';subPick=null;save();render();return}} drag=null;clearTimeout(longTimer)}
-function quickUpdate(){render()}
-function editPlayer(id){const p=cur().players.find(x=>x.id===id); if(!p||p.team==='opp')return; const grades=[1,2,3,4,5,6].map(n=>`<option ${p.grade==n?'selected':''}>${n}</option>`).join(''); const heights=Array.from({length:81},(_,i)=>100+i).map(n=>`<option ${p.height==n?'selected':''}>${n}</option>`).join(''); const ages=Array.from({length:13},(_,i)=>6+i).map(n=>`<option ${p.age==n?'selected':''}>${n}</option>`).join(''); const positions=POS.map(x=>`<option value="${x.key}" ${p.pos===x.key?'selected':''}>${x.jp}</option>`).join(''); const s=$('#sheet');s.innerHTML=`<h3>選手情報編集</h3><div class="grid"><div class="field"><label>ニックネーム</label><input id="eName" value="${p.name||''}" placeholder="未入力OK"></div><div class="field"><label>ポジション</label><select id="ePos">${positions}</select></div><div class="field"><label>学年</label><select id="eGrade"><option></option>${grades}</select></div><div class="field"><label>身長</label><select id="eHeight"><option></option>${heights}</select></div><div class="field"><label>年齢</label><select id="eAge"><option></option>${ages}</select></div><div class="field"><label>ボール</label><select id="eBall"><option value="molten" ${state.ballType==='molten'?'selected':''}>モルテン風</option><option value="mikasa" ${state.ballType==='mikasa'?'selected':''}>ミカサ風</option></select></div></div><button class="save" id="savePlayer">保存</button>`;s.classList.add('open');$('#savePlayer').onclick=()=>{p.name=$('#eName').value.trim();p.pos=$('#ePos').value;p.posJp=jp(p.pos);p.grade=$('#eGrade').value;p.height=$('#eHeight').value;p.age=$('#eAge').value;state.ballType=$('#eBall').value;save();s.classList.remove('open');render()}}
-function addNewPlayer(){let c=cur();let idx=c.players.filter(p=>p.team==='my').length;let base=POS[idx%6];c.players.push({id:'p'+Date.now(),team:'my',pos:base.key,posJp:base.jp,name:'',grade:'',height:'',age:'',x:base.x,y:base.y,rx:.105,ry:.105,rot:0});save();render()}
-function addNewTeam(){let name=prompt('チーム名','新チーム'); if(!name)return; let id=String.fromCharCode(65+state.teams.length);state.teams.push({id,name});state.team=id;cur();save();render()}
-function openDrawer(side){closeDrawers();$('#'+(side==='right'?'playerDrawer':'teamDrawer')).classList.add('open')}function closeDrawers(){document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('open'))}
-function sceneMenu(){let n=prompt('シーン名を入力 / 変更',state.scene); if(n){state.scene=n;cur();save();render()}}
-function toast(t){let d=document.createElement('div');d.textContent=t;Object.assign(d.style,{position:'absolute',top:'88px',left:'50%',transform:'translateX(-50%)',background:'#000c',color:'#fff',padding:'10px 16px',borderRadius:'22px',zIndex:99,fontWeight:900});document.body.appendChild(d);setTimeout(()=>d.remove(),1500)}
-render();
+(() => {
+  'use strict';
+  const STORAGE_KEY = 'vboard_sprint13_stable';
+  const POS = [
+    { id:'LF', short:'LF', label:'レフト' },
+    { id:'S', short:'S', label:'セッター' },
+    { id:'RF', short:'RF', label:'ライト' },
+    { id:'BL', short:'BL', label:'Bレフト' },
+    { id:'C', short:'C', label:'センター' },
+    { id:'BR', short:'BR', label:'Bライト' },
+  ];
+  const DEFAULT_SPOTS = {
+    opponent: [
+      {x:25,y:21,pos:'LF'}, {x:50,y:21,pos:'S'}, {x:75,y:21,pos:'RF'},
+      {x:25,y:39,pos:'BL'}, {x:50,y:39,pos:'C'}, {x:75,y:39,pos:'BR'},
+    ],
+    home: [
+      {x:25,y:64,pos:'LF'}, {x:50,y:64,pos:'S'}, {x:75,y:64,pos:'RF'},
+      {x:25,y:82,pos:'BL'}, {x:50,y:82,pos:'C'}, {x:75,y:82,pos:'BR'},
+    ]
+  };
+  const defaultPlayers = () => DEFAULT_SPOTS.home.map((s,i)=>({
+    id: 'p'+(i+1), nickname:'', grade:'4年', age:'10歳', height:'135cm', gender:'未設定', position:s.pos, coachMemo:''
+  }));
+  const defaultOpponents = () => DEFAULT_SPOTS.opponent.map((s,i)=>({ id:'o'+(i+1), position:s.pos }));
+  const makeSceneState = () => ({
+    ball:{x:50,y:50,type:'molten'},
+    home: DEFAULT_SPOTS.home.map((s,i)=>({ id:'p'+(i+1), x:s.x, y:s.y, r:{w:18,h:18,rot:0} })),
+    opponent: DEFAULT_SPOTS.opponent.map((s,i)=>({ id:'o'+(i+1), x:s.x, y:s.y, r:{w:18,h:18,rot:0} }))
+  });
+  const defaultState = () => ({
+    currentTeamId:'t1', currentSceneId:'s1', selectedId:null, rangeMode:true, swapMode:false, history:[],
+    teams:[{id:'t1', name:'A', label:'A', players:defaultPlayers(), opponents:defaultOpponents(), scenes:[
+      {id:'s1', name:'サーブレシーブ', state:makeSceneState()},
+      {id:'s2', name:'相手レフト', state:makeSceneState()},
+      {id:'s3', name:'チャンス', state:makeSceneState()},
+    ]}]
+  });
+
+  let state = load();
+  let drag = null;
+  let longTimer = null;
+  let longMoved = false;
+  let editingId = null;
+  let swapFirst = null;
+  let toastTimer = null;
+
+  const $ = id => document.getElementById(id);
+  const court = $('court');
+  const layer = $('objectsLayer');
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        if(parsed && parsed.teams && parsed.teams.length) return parsed;
+      }
+    }catch(e){}
+    return defaultState();
+  }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function currentTeam(){ return state.teams.find(t=>t.id===state.currentTeamId) || state.teams[0]; }
+  function currentScene(){ const t=currentTeam(); return t.scenes.find(s=>s.id===state.currentSceneId) || t.scenes[0]; }
+  function sceneState(){ return currentScene().state; }
+  function posLabel(id){ return (POS.find(p=>p.id===id)||POS[0]).label; }
+  function percentPoint(ev){
+    const rect = court.getBoundingClientRect();
+    return {
+      x: clamp((ev.clientX-rect.left)/rect.width*100, 0, 100),
+      y: clamp((ev.clientY-rect.top)/rect.height*100, 0, 100),
+    };
+  }
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function makeId(prefix){ return prefix + Math.random().toString(36).slice(2,8); }
+  function pushHistory(){
+    state.history.push(JSON.stringify(sceneState()));
+    if(state.history.length>20) state.history.shift();
+  }
+  function showToast(msg){
+    const el = $('toast'); el.textContent=msg; el.classList.add('show');
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),1300);
+  }
+
+  function render(){
+    const t=currentTeam(), sc=currentScene();
+    $('teamBtn').textContent = t.label || t.name.slice(0,1);
+    $('sceneBtn').textContent = sc.name + ' ▼';
+    $('rangeModeBtn').classList.toggle('active', state.rangeMode);
+    $('swapBtn').classList.toggle('active', state.swapMode);
+    renderCourt(); renderPlayers(); renderTeams(); renderScenes(); save();
+  }
+
+  function renderCourt(){
+    layer.innerHTML = '';
+    const ss = sceneState();
+    const t = currentTeam();
+
+    [...ss.opponent.map(x=>({...x, side:'opponent'})), ...ss.home.map(x=>({...x, side:'home'}))].forEach(item => {
+      const data = item.side==='home' ? t.players.find(p=>p.id===item.id) : t.opponents.find(p=>p.id===item.id);
+      if(!data) return;
+      drawRange(item, item.side);
+      drawToken(item, data, item.side);
+    });
+    drawBall(ss.ball);
+    if(state.selectedId) drawHandles();
+  }
+
+  function drawRange(item, side){
+    const r = item.r || {w:18,h:18,rot:0};
+    const el=document.createElement('div');
+    el.className='range' + (state.selectedId===item.id ? ' selected' : '');
+    el.style.left=item.x+'%'; el.style.top=item.y+'%';
+    el.style.width=r.w+'%'; el.style.height=r.h+'%';
+    el.style.transform=`translate(-50%,-50%) rotate(${r.rot||0}deg)`;
+    layer.appendChild(el);
+  }
+
+  function drawToken(item, data, side){
+    const el=document.createElement('div');
+    const hasName = side==='home' && !!(data.nickname||'').trim();
+    el.className = `token ${side} ${hasName?'has-name':'empty-name'} ${state.selectedId===item.id?'selected':''}`;
+    el.dataset.id=item.id; el.dataset.side=side;
+    el.style.left=item.x+'%'; el.style.top=item.y+'%';
+    const name=document.createElement('span'); name.className='name'; name.textContent = hasName ? data.nickname.trim() : '';
+    const pos=document.createElement('span'); pos.className='pos'; pos.textContent = posLabel(data.position);
+    el.appendChild(name); el.appendChild(pos);
+    el.addEventListener('pointerdown', tokenDown);
+    layer.appendChild(el);
+    fitTokenText(el);
+  }
+
+  function fitTokenText(el){
+    const name=el.querySelector('.name'), pos=el.querySelector('.pos');
+    const fit = (node, max, min) => {
+      if(!node || !node.textContent) return;
+      node.style.fontSize=max+'px';
+      let size=max;
+      while(node.scrollWidth > node.clientWidth && size > min){
+        size -= 1; node.style.fontSize=size+'px';
+      }
+    };
+    if(el.classList.contains('opponent')) fit(pos, 15, 9);
+    else if(el.classList.contains('has-name')){ fit(name,18,10); fit(pos,11,8); }
+    else fit(pos,17,9);
+  }
+
+  function drawBall(ball){
+    const el=document.createElement('div'); el.className='ball';
+    el.style.left=ball.x+'%'; el.style.top=ball.y+'%';
+    el.addEventListener('pointerdown', ballDown);
+    layer.appendChild(el);
+  }
+
+  function findSpot(id){
+    const ss=sceneState();
+    return ss.home.find(p=>p.id===id) || ss.opponent.find(p=>p.id===id);
+  }
+
+  function drawHandles(){
+    const spot=findSpot(state.selectedId); if(!spot) return;
+    const r=spot.r||{w:18,h:18,rot:0};
+    const handles = [
+      {kind:'w', x:spot.x+r.w/2, y:spot.y},
+      {kind:'h', x:spot.x, y:spot.y+r.h/2},
+      {kind:'scale', x:spot.x+r.w/2*.72, y:spot.y+r.h/2*.72},
+      {kind:'rotate', x:spot.x+r.w/2*.78, y:spot.y-r.h/2*.78},
+    ];
+    handles.forEach(h=>{
+      const el=document.createElement('div'); el.className='handle '+(h.kind==='rotate'?'rotate':'');
+      el.dataset.kind=h.kind; el.style.left=h.x+'%'; el.style.top=h.y+'%';
+      el.addEventListener('pointerdown', handleDown); layer.appendChild(el);
+    });
+  }
+
+  function tokenDown(e){
+    e.preventDefault(); e.stopPropagation();
+    const id=e.currentTarget.dataset.id; const side=e.currentTarget.dataset.side;
+    state.selectedId=id; renderCourt();
+    if(state.swapMode && side==='home'){
+      if(!swapFirst){ swapFirst=id; showToast('交代する相手をタップ'); return; }
+      if(swapFirst!==id){ swapPlayers(swapFirst,id); swapFirst=null; state.swapMode=false; render(); showToast('交代しました'); }
+      return;
+    }
+    const spot=findSpot(id); if(!spot) return;
+    pushHistory();
+    const p0=percentPoint(e);
+    drag={type:'token', id, startX:p0.x, startY:p0.y, ox:spot.x, oy:spot.y, pointerId:e.pointerId};
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    longMoved=false;
+    clearTimeout(longTimer);
+    longTimer=setTimeout(()=>{
+      if(!longMoved){ openEditor(id); drag=null; }
+    },620);
+  }
+
+  function ballDown(e){
+    e.preventDefault(); e.stopPropagation();
+    pushHistory();
+    const p0=percentPoint(e); const b=sceneState().ball;
+    drag={type:'ball', startX:p0.x,startY:p0.y, ox:b.x, oy:b.y, pointerId:e.pointerId};
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  }
+
+  function handleDown(e){
+    e.preventDefault(); e.stopPropagation();
+    const spot=findSpot(state.selectedId); if(!spot) return;
+    pushHistory();
+    const p0=percentPoint(e);
+    drag={type:'handle', kind:e.currentTarget.dataset.kind, id:spot.id, startX:p0.x,startY:p0.y, r0:{...(spot.r||{w:18,h:18,rot:0})}, pointerId:e.pointerId};
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  }
+
+  window.addEventListener('pointermove', e=>{
+    if(!drag) return;
+    e.preventDefault();
+    const p=percentPoint(e);
+    if(drag.type==='token'){
+      const spot=findSpot(drag.id); if(!spot) return;
+      const dx=p.x-drag.startX, dy=p.y-drag.startY;
+      if(Math.abs(dx)+Math.abs(dy)>1.2){ longMoved=true; clearTimeout(longTimer); }
+      spot.x=clamp(drag.ox+dx, 5, 95); spot.y=clamp(drag.oy+dy, 5, 95);
+      renderCourt();
+    } else if(drag.type==='ball'){
+      const b=sceneState().ball; b.x=clamp(drag.ox+p.x-drag.startX, 3, 97); b.y=clamp(drag.oy+p.y-drag.startY, 3, 97); renderCourt();
+    } else if(drag.type==='handle'){
+      const spot=findSpot(drag.id); if(!spot) return;
+      const r={...drag.r0};
+      const dx=p.x-drag.startX, dy=p.y-drag.startY;
+      if(drag.kind==='w') r.w=clamp(drag.r0.w+dx*2, 12, 55);
+      if(drag.kind==='h') r.h=clamp(drag.r0.h+dy*2, 12, 55);
+      if(drag.kind==='scale') { const d=(dx+dy); r.w=clamp(drag.r0.w+d,12,55); r.h=clamp(drag.r0.h+d,12,55); }
+      if(drag.kind==='rotate') r.rot = Math.round(Math.atan2(p.y-spot.y,p.x-spot.x)*180/Math.PI+90);
+      spot.r=r; renderCourt();
+    }
+  }, {passive:false});
+  window.addEventListener('pointerup', ()=>{ clearTimeout(longTimer); drag=null; save(); }, {passive:true});
+  window.addEventListener('pointercancel', ()=>{ clearTimeout(longTimer); drag=null; }, {passive:true});
+
+  function swapPlayers(a,b){
+    const ss=sceneState(); const A=ss.home.find(p=>p.id===a), B=ss.home.find(p=>p.id===b); if(!A||!B)return;
+    [A.x,B.x]=[B.x,A.x]; [A.y,B.y]=[B.y,A.y]; [A.r,B.r]=[B.r,A.r];
+  }
+
+  function renderPlayers(){
+    const t=currentTeam(); $('playerList').innerHTML='';
+    t.players.forEach((p,i)=>{
+      const row=document.createElement('div'); row.className='list-row'; row.innerHTML=`<div class="badge">${i+1}</div><div><strong>${p.nickname||posLabel(p.position)}</strong><span>${posLabel(p.position)} / ${p.grade} / ${p.height}</span></div><div class="chev">›</div>`;
+      row.addEventListener('click',()=>openEditor(p.id)); $('playerList').appendChild(row);
+    });
+  }
+  function renderTeams(){
+    $('teamList').innerHTML=''; state.teams.forEach((t,i)=>{
+      const row=document.createElement('div'); row.className='list-row'; row.innerHTML=`<div class="badge">${t.label||String.fromCharCode(65+i)}</div><div><strong>${t.name}</strong><span>${t.players.length}人 / ${t.scenes.length}シーン</span></div><div class="chev">›</div>`;
+      row.addEventListener('click',()=>{state.currentTeamId=t.id; state.currentSceneId=t.scenes[0].id; closeDrawer('teamDrawer'); render();}); $('teamList').appendChild(row);
+    });
+  }
+  function renderScenes(){
+    $('sceneList').innerHTML=''; currentTeam().scenes.forEach(sc=>{
+      const b=document.createElement('button'); b.className='scene-chip '+(sc.id===state.currentSceneId?'active':''); b.textContent=sc.name;
+      b.addEventListener('click',()=>{state.currentSceneId=sc.id; closeDrawer('sceneDrawer'); render();}); $('sceneList').appendChild(b);
+    });
+  }
+
+  function openEditor(id){
+    const p=currentTeam().players.find(x=>x.id===id); if(!p) return;
+    editingId=id;
+    $('editName').value=p.nickname||''; $('editGrade').value=p.grade; $('editAge').value=p.age; $('editHeight').value=p.height; $('editGender').value=p.gender; $('editPosition').value=p.position; $('editCoachMemo').value=p.coachMemo||'';
+    $('editor').classList.add('open'); $('editor').setAttribute('aria-hidden','false');
+  }
+  function closeEditor(){ $('editor').classList.remove('open'); $('editor').setAttribute('aria-hidden','true'); editingId=null; }
+
+  function populateSelects(){
+    $('editGrade').innerHTML=[1,2,3,4,5,6].map(n=>`<option>${n}年</option>`).join('');
+    $('editAge').innerHTML=Array.from({length:13},(_,i)=>i+6).map(n=>`<option>${n}歳</option>`).join('');
+    $('editHeight').innerHTML=Array.from({length:81},(_,i)=>i+100).map(n=>`<option>${n}cm</option>`).join('');
+    $('editPosition').innerHTML=POS.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
+  }
+
+  function openDrawer(id){ $(id).classList.add('open'); $(id).setAttribute('aria-hidden','false'); }
+  function closeDrawer(id){ $(id).classList.remove('open'); $(id).setAttribute('aria-hidden','true'); }
+  document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>{ const id=b.dataset.close; id==='editor'?closeEditor():closeDrawer(id); }));
+  $('playersBtn').addEventListener('click',()=>openDrawer('playerDrawer'));
+  $('rightHandle').addEventListener('click',()=>openDrawer('playerDrawer'));
+  $('leftHandle').addEventListener('click',()=>openDrawer('teamDrawer'));
+  $('teamBtn').addEventListener('click',()=>openDrawer('teamDrawer'));
+  $('sceneBtn').addEventListener('click',()=>openDrawer('sceneDrawer'));
+
+  // reverse swipe close for drawers
+  let swipeStart=null;
+  ['playerDrawer','teamDrawer','sceneDrawer'].forEach(id=>{
+    const el=$(id);
+    el.addEventListener('pointerdown',e=>{swipeStart={x:e.clientX,y:e.clientY,id};});
+    el.addEventListener('pointerup',e=>{
+      if(!swipeStart) return;
+      const dx=e.clientX-swipeStart.x, dy=e.clientY-swipeStart.y;
+      if(id==='playerDrawer' && dx>60) closeDrawer(id);
+      if(id==='teamDrawer' && dx<-60) closeDrawer(id);
+      if(id==='sceneDrawer' && dy<-50) closeDrawer(id);
+      swipeStart=null;
+    });
+  });
+
+  $('savePlayerBtn').addEventListener('click',()=>{
+    const p=currentTeam().players.find(x=>x.id===editingId); if(!p) return;
+    p.nickname=$('editName').value.trim(); p.grade=$('editGrade').value; p.age=$('editAge').value; p.height=$('editHeight').value; p.gender=$('editGender').value; p.position=$('editPosition').value; p.coachMemo=$('editCoachMemo').value;
+    closeEditor(); render(); showToast('保存しました');
+  });
+  $('deletePlayerBtn').addEventListener('click',()=>{
+    const t=currentTeam(); if(t.players.length<=6){ showToast('最低6人は必要'); return; }
+    t.players=t.players.filter(p=>p.id!==editingId); sceneState().home=sceneState().home.filter(p=>p.id!==editingId); closeEditor(); render();
+  });
+  $('addPlayerBtn').addEventListener('click',()=>{
+    const t=currentTeam(); const id=makeId('p'); const idx=t.players.length+1;
+    t.players.push({id,nickname:'',grade:'4年',age:'10歳',height:'135cm',gender:'未設定',position:'LF',coachMemo:''});
+    t.scenes.forEach(sc=>sc.state.home.push({id,x:15+(idx%3)*20,y:88,r:{w:18,h:18,rot:0}}));
+    render(); showToast('選手を追加');
+  });
+  $('addTeamBtn').addEventListener('click',()=>{
+    const label=String.fromCharCode(65+state.teams.length); const id=makeId('t');
+    const team={id,label,name:label+'チーム',players:defaultPlayers(),opponents:defaultOpponents(),scenes:[{id:makeId('s'),name:'サーブレシーブ',state:makeSceneState()}]};
+    state.teams.push(team); state.currentTeamId=id; state.currentSceneId=team.scenes[0].id; closeDrawer('teamDrawer'); render();
+  });
+  $('addSceneBtn').addEventListener('click',addScene);
+  function addScene(){
+    const t=currentTeam(); const name=prompt('シーン名', '新しいシーン'); if(!name) return;
+    const base=JSON.parse(JSON.stringify(sceneState())); const sc={id:makeId('s'),name,state:base};
+    t.scenes.push(sc); state.currentSceneId=sc.id; render(); showToast('シーン追加');
+  }
+  $('rangeModeBtn').addEventListener('click',()=>{ state.rangeMode=!state.rangeMode; render(); });
+  $('swapBtn').addEventListener('click',()=>{ state.swapMode=!state.swapMode; swapFirst=null; render(); showToast(state.swapMode?'交代する2人をタップ':'交代解除'); });
+  $('undoBtn').addEventListener('click',()=>{ const last=state.history.pop(); if(last){ currentScene().state=JSON.parse(last); render(); }});
+  $('resetBtn').addEventListener('click',()=>{ if(confirm('このシーンを初期配置に戻しますか？')){ currentScene().state=makeSceneState(); render(); }});
+  court.addEventListener('pointerdown', e=>{ if(e.target===court || e.target===layer){ state.selectedId=null; renderCourt(); }});
+
+  // run basic self-checks in console
+  function selfCheck(){
+    const t=currentTeam(), sc=sceneState();
+    console.assert(t.players.length>=6,'players >= 6');
+    console.assert(sc.home.length>=6 && sc.opponent.length===6,'court markers');
+    console.assert(t.opponents[0].position==='LF' && t.opponents[3].position==='BL','opponent order');
+    console.assert(sc.home[0].r.w===18 && sc.home[0].r.h===18,'default circle');
+  }
+  populateSelects(); render(); selfCheck();
+})();
