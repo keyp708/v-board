@@ -1,100 +1,38 @@
-const POSITIONS = [
-  {key:'LF',jp:'レフト'}, {key:'S',jp:'セッター'}, {key:'RF',jp:'ライト'},
-  {key:'BL',jp:'Bレフト'}, {key:'C',jp:'センター'}, {key:'BR',jp:'Bライト'}
+const POS=[
+  {key:'LF',jp:'レフト',x:.24,y:.66},{key:'S',jp:'セッター',x:.50,y:.66},{key:'RF',jp:'ライト',x:.76,y:.66},
+  {key:'BL',jp:'Bレフト',x:.24,y:.82},{key:'C',jp:'センター',x:.50,y:.82},{key:'BR',jp:'Bライト',x:.76,y:.82}
 ];
-const stateKey='vboard_sprint11';
-const defaultPlayers = [
-  {id:'p1',nickname:'',position:'LF',grade:'4',age:'10',height:'150',edited:false},
-  {id:'p2',nickname:'',position:'S',grade:'4',age:'10',height:'150',edited:false},
-  {id:'p3',nickname:'',position:'RF',grade:'4',age:'10',height:'150',edited:false},
-  {id:'p4',nickname:'',position:'BL',grade:'4',age:'10',height:'150',edited:false},
-  {id:'p5',nickname:'',position:'C',grade:'4',age:'10',height:'150',edited:false},
-  {id:'p6',nickname:'',position:'BR',grade:'4',age:'10',height:'150',edited:false},
+const OPP=[
+  {key:'LF',jp:'レフト',x:.24,y:.18},{key:'S',jp:'セッター',x:.50,y:.18},{key:'RF',jp:'ライト',x:.76,y:.18},
+  {key:'BL',jp:'Bレフト',x:.24,y:.34},{key:'C',jp:'センター',x:.50,y:.34},{key:'BR',jp:'Bライト',x:.76,y:.34}
 ];
-const oppPlayers = POSITIONS.map((p,i)=>({id:'o'+i,position:p.key,opponent:true}));
-const defaults = {
-  team:'A', scene:'サーブレシーブ', selected:'p2', ball:{x:50,y:50,h:12},
-  players: defaultPlayers,
-  opponent: oppPlayers,
-  scenes:[{id:'s1',name:'サーブレシーブ'}],
-  teams:[{id:'A',name:'A'}],
-  layouts:{s1:{
-    p1:{x:25,y:72,w:15,h:15,r:0},p2:{x:50,y:72,w:15,h:15,r:0},p3:{x:75,y:72,w:15,h:15,r:0},
-    p4:{x:25,y:86,w:15,h:15,r:0},p5:{x:50,y:86,w:15,h:15,r:0},p6:{x:75,y:86,w:15,h:15,r:0},
-    o0:{x:25,y:19,w:15,h:15,r:0},o1:{x:50,y:19,w:15,h:15,r:0},o2:{x:75,y:19,w:15,h:15,r:0},
-    o3:{x:25,y:33,w:15,h:15,r:0},o4:{x:50,y:33,w:15,h:15,r:0},o5:{x:75,y:33,w:15,h:15,r:0},
-  }}
-};
-let state = load();
-let mode='player', sheet=null, drag=null, longTimer=null, swapFirst=null;
-function load(){try{return {...structuredClone(defaults),...(JSON.parse(localStorage.getItem(stateKey)||'{}'))}}catch{return structuredClone(defaults)}}
-function save(){localStorage.setItem(stateKey,JSON.stringify(state)); const el=document.querySelector('.saveStatus'); if(el) el.textContent='保存済み';}
-function posLabel(key){return (POSITIONS.find(p=>p.key===key)||{}).jp||key}
-function activeScene(){return state.scenes.find(s=>s.name===state.scene)||state.scenes[0]}
-function layout(){const s=activeScene(); if(!state.layouts[s.id]) state.layouts[s.id]=structuredClone(defaults.layouts.s1); return state.layouts[s.id]}
-function allPlayers(){return [...state.opponent,...state.players]}
-function render(){
-  document.getElementById('app').innerHTML=`<div class="app">
-    <div class="top"><button class="teamBtn" id="teamOpen">${state.team}</button><button class="sceneBtn" id="sceneOpen">${state.scene} ▼</button><button class="playersBtn" id="playersOpen">選手</button></div>
-    <div class="courtWrap"><button class="sideHandle leftHandle" id="teamHandle">‹</button><button class="sideHandle rightHandle" id="playerHandle">›</button><div class="court" id="court">
-      <div class="courtLabel oppLabel">相手コート</div><div class="line attackTop"></div><div class="line attackBottom"></div><div class="line centerLine"></div><div class="net"></div>
-      ${allPlayers().map(p=>renderCoverage(p)).join('')}${allPlayers().map(p=>renderPlayer(p)).join('')}<div class="ball" id="ball" style="left:${state.ball.x}%;top:${state.ball.y}%;--h:${state.ball.h}px"></div>
-    </div></div>
-    <div class="bottomBar"><button class="tool" id="undoBtn">↶<br>UNDO</button><button class="tool" id="rangeBtn">◌<br>範囲</button><button class="tool" id="swapBtn">⇄<br>交代</button><button class="tool" id="addSceneBtn">＋<br>シーン</button><button class="tool" id="resetBtn">⌫<br>リセット</button></div>
-  </div><div class="sheetBackdrop" id="backdrop"></div><div id="sheets"></div><div class="modal" id="modal"></div>`;
-  bind();
-  requestAnimationFrame(fitAllTokenText);
-}
-function renderCoverage(p){const l=layout()[p.id]; if(!l)return''; const cls=state.selected===p.id?'coverage selected':'coverage'; return `<div class="${cls}" style="left:${l.x}%;top:${l.y}%;width:${l.w}%;height:${l.h/2}%;transform:translate(-50%,-50%) rotate(${l.r||0}deg)"></div>${state.selected===p.id?renderHandles(l):''}`}
-function renderHandles(l){return `<div class="handle" data-h="right" style="left:${l.x+l.w/2}%;top:${l.y}%"></div><div class="handle" data-h="bottom" style="left:${l.x}%;top:${l.y+l.h/4}%"></div><div class="handle" data-h="scale" style="left:${l.x+l.w/2*.7}%;top:${l.y+l.h/4*.7}%"></div><div class="handle" data-h="rotate" style="left:${l.x+l.w/2*.45}%;top:${l.y-l.h/4*.75}%"></div>`}
-function renderPlayer(p){
-  const l=layout()[p.id]; if(!l)return'';
-  const showSelfInfo = !p.opponent && (p.edited || (p.nickname&&p.nickname.trim()));
-  const main = p.opponent ? posLabel(p.position) : (showSelfInfo ? (p.nickname||'') : '');
-  const sub = p.opponent ? '' : (showSelfInfo ? posLabel(p.position) : '');
-  const noText = !main && !sub;
-  return `<div class="player ${p.opponent?'opponent':''} ${state.selected===p.id?'selected':''} ${noText?'noText':''}" data-id="${p.id}" style="left:${l.x}%;top:${l.y}%"><span class="primaryText ${main?'':'empty'}" data-fit="1">${main}</span><span class="positionText ${sub?'':'empty'}" data-fit="1">${sub}</span></div>`
-}
-function fitAllTokenText(){
-  document.querySelectorAll('[data-fit]').forEach(el=>{
-    if(!el.textContent.trim()) return;
-    const base = el.classList.contains('primaryText') ? 20 : 13;
-    el.style.fontSize = base+'px';
-    let size = base;
-    while(size>8 && (el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight+1)){
-      size -= 1; el.style.fontSize = size+'px';
-    }
-  });
-}
-function bind(){
-  document.getElementById('playersOpen').onclick=()=>openSheet('players','right'); document.getElementById('playerHandle').onclick=()=>openSheet('players','right');
-  document.getElementById('teamOpen').onclick=()=>openSheet('teams','left'); document.getElementById('teamHandle').onclick=()=>openSheet('teams','left');
-  document.getElementById('sceneOpen').onclick=()=>openSheet('scenes','right'); document.getElementById('addSceneBtn').onclick=addScene;
-  document.getElementById('resetBtn').onclick=()=>{if(confirm('このシーンの配置を初期化しますか？')){state.layouts[activeScene().id]=structuredClone(defaults.layouts.s1); save(); render();}}
-  document.getElementById('swapBtn').onclick=()=>{mode='swap'; swapFirst=null; toast('交代する2人を順にタップ');};
-  document.getElementById('rangeBtn').onclick=()=>{mode='range';};
-  bindCourt();
-}
-function toast(msg){let t=document.querySelector('.toast'); if(!t){t=document.createElement('div');t.className='toast';document.body.appendChild(t);} t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600);}
-function handleSwapTap(id){ if(id.startsWith('o')) return; if(!swapFirst){swapFirst=id; state.selected=id; render(); toast('もう1人をタップ'); return;} const l=layout(); const a=l[swapFirst], b=l[id]; if(a&&b){const ax=a.x, ay=a.y; a.x=b.x; a.y=b.y; b.x=ax; b.y=ay;} mode='player'; swapFirst=null; save(); render(); toast('交代しました');}
-function bindCourt(){
-  const court=document.getElementById('court');
-  court.querySelectorAll('.player').forEach(el=>{
-    el.addEventListener('pointerdown',e=>{e.preventDefault(); const id=el.dataset.id; if(mode==='swap'){handleSwapTap(id);return;} state.selected=id; save(); render(); const c=document.getElementById('court').getBoundingClientRect(); drag={type:'player',id,dx:e.clientX,dy:e.clientY,c}; longTimer=setTimeout(()=>openEditor(id),650); el.setPointerCapture(e.pointerId);});
-  });
-  document.getElementById('ball').addEventListener('pointerdown',e=>{e.preventDefault(); const c=court.getBoundingClientRect(); drag={type:'ball',c}; e.target.setPointerCapture(e.pointerId);});
-  court.querySelectorAll('.handle').forEach(el=>{el.addEventListener('pointerdown',e=>{e.preventDefault(); const c=court.getBoundingClientRect(); drag={type:'handle',h:el.dataset.h,id:state.selected,c}; el.setPointerCapture(e.pointerId);});});
-  window.onpointermove=e=>{if(!drag)return; clearTimeout(longTimer); const c=drag.c; let x=(e.clientX-c.left)/c.width*100, y=(e.clientY-c.top)/c.height*100; x=Math.max(0,Math.min(100,x)); y=Math.max(0,Math.min(100,y)); const l=layout(); if(drag.type==='player'){l[drag.id].x=x;l[drag.id].y=y;} if(drag.type==='ball'){state.ball.x=x;state.ball.y=y;} if(drag.type==='handle'){const r=l[drag.id]; if(drag.h==='right'){r.w=Math.max(8,Math.min(70,Math.abs(x-r.x)*2));} if(drag.h==='bottom'){r.h=Math.max(8,Math.min(120,Math.abs(y-r.y)*4));} if(drag.h==='scale'){const s=Math.max(8,Math.min(80,Math.hypot(x-r.x,(y-r.y)*2))); r.w=s; r.h=s;} if(drag.h==='rotate'){r.r=Math.atan2(y-r.y,x-r.x)*180/Math.PI+90;} }
-    quickUpdate(); save();};
-  window.onpointerup=()=>{clearTimeout(longTimer); drag=null;};
-}
-function quickUpdate(){render();}
-function openSheet(kind,side){const backdrop=document.getElementById('backdrop'); const sheets=document.getElementById('sheets'); sheet=kind; backdrop.classList.add('show'); backdrop.onclick=closeSheet; sheets.innerHTML=`<div class="sheet ${side} show" id="sheet"><div class="sheetHeader"><h2>${kind==='players'?'選手一覧':kind==='teams'?'チーム':'シーン'}</h2><button class="close" id="closeSheet">×</button></div>${sheetContent(kind)}</div>`; document.getElementById('closeSheet').onclick=closeSheet; const sh=document.getElementById('sheet'); let startX=null; sh.addEventListener('touchstart',e=>startX=e.touches[0].clientX); sh.addEventListener('touchend',e=>{if(startX==null)return; const dx=e.changedTouches[0].clientX-startX; if((side==='right'&&dx>70)||(side==='left'&&dx<-70))closeSheet();}); bindSheet(kind);}
-function closeSheet(){document.getElementById('backdrop')?.classList.remove('show'); document.getElementById('sheets').innerHTML='';}
-function sheetContent(kind){if(kind==='players')return state.players.map((p,i)=>`<div class="listItem" data-edit="${p.id}"><div class="miniToken">${i+1}</div><div class="itemMain"><div class="itemName">${p.nickname||'未入力'}</div><div class="itemSub">${posLabel(p.position)} / ${p.grade}年 / ${p.height}cm</div></div><div>›</div></div>`).join('')+`<button class="addBtn" id="addPlayer">＋ 選手追加</button>`; if(kind==='teams')return state.teams.map(t=>`<div class="listItem" data-team="${t.id}"><div class="miniToken">${t.id}</div><div class="itemMain"><div class="itemName">${t.name}</div></div><div>›</div></div>`).join('')+`<button class="addBtn" id="addTeam">＋ チーム追加</button>`; return state.scenes.map(s=>`<div class="listItem" data-scene="${s.name}"><div class="miniToken">🏐</div><div class="itemMain"><div class="itemName">${s.name}</div></div><div>›</div></div>`).join('')+`<button class="addBtn" id="addSceneInSheet">＋ シーン追加</button>`}
-function bindSheet(kind){document.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>openEditor(el.dataset.edit)); const ap=document.getElementById('addPlayer'); if(ap)ap.onclick=addPlayer; const at=document.getElementById('addTeam'); if(at)at.onclick=addTeam; const as=document.getElementById('addSceneInSheet'); if(as)as.onclick=addScene; document.querySelectorAll('[data-team]').forEach(el=>el.onclick=()=>{state.team=el.dataset.team;save();closeSheet();render();}); document.querySelectorAll('[data-scene]').forEach(el=>{el.onclick=()=>{state.scene=el.dataset.scene;save();closeSheet();render();}; el.oncontextmenu=e=>{e.preventDefault(); renameScene(el.dataset.scene)}})}
-function addPlayer(){const id='p'+Date.now(); state.players.push({id,nickname:'',position:'LF',grade:'4',age:'10',height:'140',edited:false}); layout()[id]={x:50,y:80,w:15,h:15,r:0}; save(); closeSheet(); render(); openEditor(id);}
-function addTeam(){const name=prompt('チーム名','B'); if(!name)return; const id=name.slice(0,1).toUpperCase(); state.teams.push({id,name}); state.team=id; save(); closeSheet(); render();}
-function addScene(){const name=prompt('シーン名','新しいシーン'); if(!name)return; const id='s'+Date.now(); state.scenes.push({id,name}); state.layouts[id]=structuredClone(layout()); state.scene=name; save(); closeSheet(); render();}
-function openEditor(id){const p=state.players.find(x=>x.id===id); if(!p) return; const modal=document.getElementById('modal'); modal.classList.add('show'); modal.innerHTML=`<div class="editor"><h2>選手情報</h2><div class="grid"><div class="field full"><label>ニックネーム</label><input id="edName" value="${p.nickname||''}" placeholder="例：みはな"></div><div class="field"><label>学年</label><select id="edGrade">${[1,2,3,4,5,6].map(n=>`<option ${p.grade==n?'selected':''}>${n}</option>`).join('')}</select></div><div class="field"><label>年齢</label><select id="edAge">${Array.from({length:8},(_,i)=>i+6).map(n=>`<option ${p.age==n?'selected':''}>${n}</option>`).join('')}</select></div><div class="field"><label>身長</label><select id="edHeight">${Array.from({length:81},(_,i)=>i+100).map(n=>`<option ${p.height==n?'selected':''}>${n}</option>`).join('')}</select></div><div class="field"><label>ポジション</label><select id="edPos">${POSITIONS.map(pos=>`<option value="${pos.key}" ${p.position===pos.key?'selected':''}>${pos.jp}</option>`).join('')}</select></div><div class="field full"><label>コーチ専用メモ</label><textarea id="edMemo" rows="3">${p.memo||''}</textarea></div></div><div class="actions"><button class="cancel" id="cancelEdit">キャンセル</button><button class="save" id="saveEdit">保存</button></div></div>`; document.getElementById('cancelEdit').onclick=()=>modal.classList.remove('show'); document.getElementById('saveEdit').onclick=()=>{p.nickname=document.getElementById('edName').value.trim();p.edited=true;p.grade=document.getElementById('edGrade').value;p.age=document.getElementById('edAge').value;p.height=document.getElementById('edHeight').value;p.position=document.getElementById('edPos').value;p.memo=document.getElementById('edMemo').value;modal.classList.remove('show');save();render();};}
+const H=['top','right','bottom','left','scale','rot'];
+const initial=()=>({
+ teams:[{id:'A',name:'A'}],team:'A',scene:'サーブレシーブ',ballType:'molten',
+ scenes:{'A::サーブレシーブ':{players:POS.map((p,i)=>({id:'p'+i,team:'my',pos:p.key,posJp:p.jp,name:'',grade:'',height:'',age:'',x:p.x,y:p.y,rx:.105,ry:.105,rot:0})).concat(OPP.map((p,i)=>({id:'o'+i,team:'opp',pos:p.key,posJp:p.jp,name:'',x:p.x,y:p.y,rx:.095,ry:.095,rot:0}))),ball:{x:.5,y:.5,h:45}}}
+});
+let state=load();let selected='p1',mode='select',subPick=null,drag=null,longTimer=null;const $=q=>document.querySelector(q), app=$('#app');
+function load(){try{return JSON.parse(localStorage.vboard12)||initial()}catch(e){return initial()}}
+function save(){localStorage.vboard12=JSON.stringify(state)}
+const key=()=>`${state.team}::${state.scene}`; const cur=()=>state.scenes[key()]||(state.scenes[key()]=JSON.parse(JSON.stringify(state.scenes['A::サーブレシーブ'])));
+function jp(key){return ({LF:'レフト',S:'セッター',RF:'ライト',BL:'Bレフト',C:'センター',BR:'Bライト'}[key]||key)}
+function render(){let c=cur();app.innerHTML=`<div class="app"><div class="top"><button class="team" id="teamBtn">${state.team}</button><button class="scene" id="sceneBtn">${state.scene} ▼</button><button class="playersBtn" id="playersBtn">選手</button></div><div class="stage"><button class="sideHandle leftHandle" id="teamsHandle">‹</button><button class="sideHandle rightHandle" id="playersHandle">›</button><div class="courtWrap"><div class="court" id="court"><div class="half oppHalf"><span class="label oppLabel">相手コート</span></div><div class="half myHalf"></div><div class="attack attackTop"></div><div class="attack attackBottom"></div><div class="centerLine"></div><div class="net"></div></div></div><div class="bottomBar"><button class="barBtn" id="undo"><b>↶</b>UNDO</button><button class="barBtn" id="rangeMode"><b>◌</b>範囲</button><button class="barBtn" id="subMode"><b>⇄</b>交代</button><button class="barBtn" id="sceneAdd"><b>＋</b>シーン</button><button class="barBtn" id="reset"><b>⌫</b>リセット</button></div></div><div class="drawer right" id="playerDrawer"><button class="close" data-close>×</button><h2>選手一覧</h2><div class="list">${c.players.filter(p=>p.team==='my').map((p,i)=>`<div class="row" data-edit="${p.id}"><span class="num">${i+1}</span><div><b>${p.name||jp(p.pos)}</b><small>${jp(p.pos)} ${p.grade?'/ '+p.grade+'年':''} ${p.height?'/ '+p.height+'cm':''}</small></div><span>›</span></div>`).join('')}<button class="add" id="addPlayer">＋ 選手追加</button></div></div><div class="drawer left" id="teamDrawer"><button class="close" data-close>×</button><h2>チーム</h2><div class="list">${state.teams.map(t=>`<div class="row" data-team="${t.id}"><span class="num">${t.id}</span><div><b>${t.name}</b><small>タップで切替</small></div><span>›</span></div>`).join('')}<button class="add" id="addTeam">＋ チーム追加</button></div></div><div class="sheet" id="sheet"></div></div>`;
+ const court=$('#court'); c.players.forEach(p=>{addRange(court,p);addPlayer(court,p)}); addBall(court,c.ball); addHandles(); bind();}
+function addRange(court,p){const d=document.createElement('div');d.className='range '+(p.id===selected?'selected':'');d.dataset.range=p.id;Object.assign(d.style,{left:p.x*100+'%',top:p.y*100+'%',width:p.rx*200+'%',height:p.ry*100+'%'});d.style.setProperty('--rot',p.rot+'deg');court.appendChild(d)}
+function addPlayer(court,p){const el=document.createElement('div');el.className='player '+(p.team==='opp'?'opp ':'')+(p.id===selected?'selected':'');el.dataset.id=p.id;let name=p.team==='opp'?jp(p.pos):(p.name||'');let pos=p.team==='opp'?'':jp(p.pos); if(!name && p.team==='my'){name=jp(p.pos);pos=''}
+ el.innerHTML=`<div class="pText"><span class="pName ${p.team==='opp'?'onlyPos':''}">${name}</span>${pos?`<span class="pPos">${pos}</span>`:''}</div>`;Object.assign(el.style,{left:p.x*100+'%',top:p.y*100+'%'});court.appendChild(el)}
+function addBall(court,b){const el=document.createElement('div');el.id='ball';el.className='ball '+state.ballType;el.dataset.brand=state.ballType==='molten'?'molten':'MIKASA';Object.assign(el.style,{left:b.x*100+'%',top:b.y*100+'%',width:(42+b.h/10)+'px',height:(42+b.h/10)+'px'});court.appendChild(el)}
+function addHandles(){const p=cur().players.find(x=>x.id===selected); if(!p) return; const court=$('#court'), r=court.getBoundingClientRect(); const cx=p.x*r.width,cy=p.y*r.height, rx=p.rx*r.width, ry=p.ry*r.height; const pts={top:[cx,cy-ry],right:[cx+rx,cy],bottom:[cx,cy+ry],left:[cx-rx,cy],scale:[cx+rx*.72,cy+ry*.72],rot:[cx+rx*.9,cy-ry*.9]}; H.forEach(h=>{let d=document.createElement('div');d.className='handleDot '+(h==='rot'?'rotDot':'');d.dataset.handle=h;d.style.left=pts[h][0]+'px';d.style.top=pts[h][1]+'px';court.appendChild(d)})}
+function bind(){document.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeDrawers); $('#playersBtn').onclick=()=>openDrawer('right'); $('#playersHandle').onclick=()=>openDrawer('right'); $('#teamsHandle').onclick=()=>openDrawer('left'); $('#teamBtn').onclick=()=>openDrawer('left'); $('#sceneBtn').onclick=sceneMenu; $('#sceneAdd').onclick=()=>{let n=prompt('シーン名','新しいシーン'); if(n){state.scene=n; cur(); save(); render()}}; $('#reset').onclick=()=>{if(confirm('現在のシーンを初期化しますか？')){delete state.scenes[key()];cur();save();render()}}; $('#subMode').onclick=()=>{mode='sub';subPick=null;toast('交代する2人を順にタップ')}; $('#rangeMode').onclick=()=>toast('白い点で範囲を調整できます'); $('#addPlayer').onclick=()=>addNewPlayer(); $('#addTeam').onclick=()=>addNewTeam(); document.querySelectorAll('[data-edit]').forEach(r=>r.onclick=()=>editPlayer(r.dataset.edit)); document.querySelectorAll('[data-team]').forEach(r=>r.onclick=()=>{state.team=r.dataset.team;cur();save();render()}); bindCourt();}
+function bindCourt(){const court=$('#court'); court.querySelectorAll('.player').forEach(el=>{el.addEventListener('pointerdown',ev=>{ev.preventDefault();const id=el.dataset.id; selected=id; const p=cur().players.find(x=>x.id===id); longTimer=setTimeout(()=>editPlayer(id),650); drag={type:'player',id,dx:0,dy:0}; el.setPointerCapture(ev.pointerId); render()})}); court.querySelectorAll('.handleDot').forEach(el=>{el.addEventListener('pointerdown',ev=>{ev.preventDefault();drag={type:'handle',h:el.dataset.handle};el.setPointerCapture(ev.pointerId)})}); $('#ball').addEventListener('pointerdown',ev=>{ev.preventDefault();drag={type:'ball'};$('#ball').setPointerCapture(ev.pointerId)}); court.addEventListener('pointermove',move); court.addEventListener('pointerup',up); court.addEventListener('pointercancel',up)}
+function posFrom(ev){const r=$('#court').getBoundingClientRect();return {x:Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(ev.clientY-r.top)/r.height)),r}}
+function move(ev){if(!drag)return;clearTimeout(longTimer);let c=cur(), pt=posFrom(ev); if(drag.type==='player'){let p=c.players.find(x=>x.id===drag.id);p.x=pt.x;p.y=pt.y;save();quickUpdate()} if(drag.type==='ball'){c.ball.x=pt.x;c.ball.y=pt.y;save();quickUpdate()} if(drag.type==='handle'){let p=c.players.find(x=>x.id===selected);let dx=pt.x-p.x, dy=pt.y-p.y; if(drag.h==='right'||drag.h==='left')p.rx=Math.max(.07,Math.abs(dx)); if(drag.h==='top'||drag.h==='bottom')p.ry=Math.max(.07,Math.abs(dy)); if(drag.h==='scale'){let v=Math.max(.08,Math.hypot(dx,dy));p.rx=v;p.ry=v} if(drag.h==='rot')p.rot=Math.atan2(dy,dx)*180/Math.PI; save();quickUpdate()}}
+function up(ev){if(drag&&drag.type==='player'&&mode==='sub'){if(!subPick)subPick=drag.id;else if(subPick!==drag.id){let c=cur(),a=c.players.find(p=>p.id===subPick),b=c.players.find(p=>p.id===drag.id);[a.x,b.x]=[b.x,a.x];[a.y,b.y]=[b.y,a.y];mode='select';subPick=null;save();render();return}} drag=null;clearTimeout(longTimer)}
+function quickUpdate(){render()}
+function editPlayer(id){const p=cur().players.find(x=>x.id===id); if(!p||p.team==='opp')return; const grades=[1,2,3,4,5,6].map(n=>`<option ${p.grade==n?'selected':''}>${n}</option>`).join(''); const heights=Array.from({length:81},(_,i)=>100+i).map(n=>`<option ${p.height==n?'selected':''}>${n}</option>`).join(''); const ages=Array.from({length:13},(_,i)=>6+i).map(n=>`<option ${p.age==n?'selected':''}>${n}</option>`).join(''); const positions=POS.map(x=>`<option value="${x.key}" ${p.pos===x.key?'selected':''}>${x.jp}</option>`).join(''); const s=$('#sheet');s.innerHTML=`<h3>選手情報編集</h3><div class="grid"><div class="field"><label>ニックネーム</label><input id="eName" value="${p.name||''}" placeholder="未入力OK"></div><div class="field"><label>ポジション</label><select id="ePos">${positions}</select></div><div class="field"><label>学年</label><select id="eGrade"><option></option>${grades}</select></div><div class="field"><label>身長</label><select id="eHeight"><option></option>${heights}</select></div><div class="field"><label>年齢</label><select id="eAge"><option></option>${ages}</select></div><div class="field"><label>ボール</label><select id="eBall"><option value="molten" ${state.ballType==='molten'?'selected':''}>モルテン風</option><option value="mikasa" ${state.ballType==='mikasa'?'selected':''}>ミカサ風</option></select></div></div><button class="save" id="savePlayer">保存</button>`;s.classList.add('open');$('#savePlayer').onclick=()=>{p.name=$('#eName').value.trim();p.pos=$('#ePos').value;p.posJp=jp(p.pos);p.grade=$('#eGrade').value;p.height=$('#eHeight').value;p.age=$('#eAge').value;state.ballType=$('#eBall').value;save();s.classList.remove('open');render()}}
+function addNewPlayer(){let c=cur();let idx=c.players.filter(p=>p.team==='my').length;let base=POS[idx%6];c.players.push({id:'p'+Date.now(),team:'my',pos:base.key,posJp:base.jp,name:'',grade:'',height:'',age:'',x:base.x,y:base.y,rx:.105,ry:.105,rot:0});save();render()}
+function addNewTeam(){let name=prompt('チーム名','新チーム'); if(!name)return; let id=String.fromCharCode(65+state.teams.length);state.teams.push({id,name});state.team=id;cur();save();render()}
+function openDrawer(side){closeDrawers();$('#'+(side==='right'?'playerDrawer':'teamDrawer')).classList.add('open')}function closeDrawers(){document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('open'))}
+function sceneMenu(){let n=prompt('シーン名を入力 / 変更',state.scene); if(n){state.scene=n;cur();save();render()}}
+function toast(t){let d=document.createElement('div');d.textContent=t;Object.assign(d.style,{position:'absolute',top:'88px',left:'50%',transform:'translateX(-50%)',background:'#000c',color:'#fff',padding:'10px 16px',borderRadius:'22px',zIndex:99,fontWeight:900});document.body.appendChild(d);setTimeout(()=>d.remove(),1500)}
 render();
