@@ -2,86 +2,13 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a5f78" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>V Board</title>
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="app" class="app">
-    <header class="topbar">
-      <button id="teamBtn" class="pill team-pill">A</button>
-      <button id="sceneBtn" class="pill scene-pill">サーブレシーブ ▾</button>
-      <button id="playersBtn" class="pill players-pill">選手</button>
-    </header>
-
-    <main class="board-wrap">
-      <button id="leftHandle" class="side-handle side-left" aria-label="チーム一覧">‹</button>
-      <button id="rightHandle" class="side-handle side-right" aria-label="選手一覧">›</button>
-
-      <section id="courtArea" class="court-area">
-        <div class="court-frame">
-          <div id="court" class="court">
-            <div class="court-label opponent-label">相手コート</div>
-            <div class="line attack-line opponent-attack"></div>
-            <div class="line attack-line home-attack"></div>
-            <div class="net"><span></span></div>
-            <div id="objectsLayer" class="objects-layer"></div>
-          </div>
-        </div>
-      </section>
-
-      <nav class="bottom-actions">
-        <button id="undoBtn" class="action-btn"><span>↶</span><small>UNDO</small></button>
-        <button id="rangeModeBtn" class="action-btn"><span>◌</span><small>範囲</small></button>
-        <button id="swapBtn" class="action-btn"><span>⇄</span><small>交代</small></button>
-        <button id="addSceneBtn" class="action-btn"><span>＋</span><small>シーン</small></button>
-        <button id="resetBtn" class="action-btn"><span>⌫</span><small>リセット</small></button>
-      </nav>
-    </main>
-
-    <aside id="playerDrawer" class="drawer drawer-right" aria-hidden="true">
-      <div class="drawer-head"><h2>選手一覧</h2><button class="close" data-close="playerDrawer">×</button></div>
-      <div id="playerList" class="list"></div>
-      <button id="addPlayerBtn" class="drawer-add">＋ 選手追加</button>
-    </aside>
-
-    <aside id="teamDrawer" class="drawer drawer-left" aria-hidden="true">
-      <div class="drawer-head"><h2>チーム管理</h2><button class="close" data-close="teamDrawer">×</button></div>
-      <div id="teamList" class="list"></div>
-      <button id="addTeamBtn" class="drawer-add">＋ チーム追加</button>
-    </aside>
-
-    <aside id="sceneDrawer" class="drawer drawer-top" aria-hidden="true">
-      <div class="drawer-head"><h2>シーン</h2><button class="close" data-close="sceneDrawer">×</button></div>
-      <div id="sceneList" class="scene-list"></div>
-    </aside>
-
-    <div id="editor" class="sheet" aria-hidden="true">
-      <div class="sheet-card">
-        <div class="sheet-head"><h2>選手情報</h2><button class="close" data-close="editor">×</button></div>
-        <div class="form-grid">
-          <label>ニックネーム<input id="editName" placeholder="未入力ならポジションのみ" /></label>
-          <label>学年<select id="editGrade"></select></label>
-          <label>年齢<select id="editAge"></select></label>
-          <label>身長<select id="editHeight"></select></label>
-          <label>性別<select id="editGender"><option>未設定</option><option>女の子</option><option>男の子</option></select></label>
-          <label>ポジション<select id="editPosition"></select></label>
-        </div>
-        <div class="private-box">
-          <b>コーチ専用メモ</b>
-          <textarea id="editCoachMemo" placeholder="性格・声かけ・注意点など"></textarea>
-        </div>
-        <div class="sheet-actions">
-          <button id="deletePlayerBtn" class="danger">削除</button>
-          <button id="savePlayerBtn" class="primary">保存</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="toast" class="toast"></div>
-  </div>
-  <script src="./app.js"></script>
+  <div id="app"></div>
+  <script src="app.js"></script>
 </body>
 </html>

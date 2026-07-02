@@ -1,1 +1,1 @@
-{"name":"V Board","short_name":"V Board","start_url":"./","display":"standalone","background_color":"#0a5f78","theme_color":"#0a5f78","icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml"}]}
+{"name":"V Board","short_name":"V Board","start_url":"/","display":"standalone","background_color":"#08b7cc","theme_color":"#07526c","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml"}]}
