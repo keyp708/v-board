@@ -1,12 +1,9 @@
-# V Board Sprint20 RC1
+# V Board Sprint20 RC2
 
-小学生バレーボール用フォーメーション作戦盤。
+Vercel設定は以下でOKです。
 
-## テスト重点
-- シーン保存/選択
-- 空白タップで選択解除
-- 長押し編集
-- 選手ドラッグ
-- 守備範囲の真円/横楕円/縦楕円
-- 交代モード
-- 生年月日から年齢自動計算
+- Build Command: `npm run build`
+- Output Directory: `public`
+- Install Command: 空欄またはデフォルト
+
+今回のZIPは `package.json` の build で `public` を自動生成するため、Vercelの `public directory missing` エラーを避けます。

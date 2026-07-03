@@ -1,1 +1,1 @@
-{"scripts":{"start":"vite --host 0.0.0.0","build":"echo static"},"dependencies":{},"devDependencies":{}}
+{"scripts":{"build":"rm -rf public && mkdir -p public && cp index.html manifest.webmanifest icon.svg README.md public/"},"dependencies":{},"devDependencies":{}}
