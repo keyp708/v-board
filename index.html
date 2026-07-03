@@ -1,81 +1,97 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <title>V Board</title>
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<title>V Board</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --bg1:#06465a;--bg2:#09b7c9;--aqua:#22bed1;--court:#f7a244;--court2:#f49a36;
+  --ink:#102832;--panel:#ffffff;--dark:#071923;--dark2:#253038;--grey:#777;--green:#11b886;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:linear-gradient(180deg,var(--bg1),#087b8e 45%,var(--bg2));color:#fff;touch-action:none}.app{height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 8px);gap:10px;max-width:760px;margin:0 auto;position:relative}.topbar{height:78px;display:grid;grid-template-columns:78px 1fr 96px;align-items:center;gap:12px;flex:none}.pill,.circleBtn{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.26);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 22px rgba(0,0,0,.12);backdrop-filter:blur(6px);font-weight:900}.circleBtn{height:72px;width:72px;border-radius:28px;font-size:31px;display:flex;align-items:center;justify-content:center}.pill{height:64px;border-radius:32px;display:flex;align-items:center;justify-content:center;font-size:30px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.playersBtn{height:64px;border-radius:30px;font-size:26px}.viewSwitch{height:48px;display:flex;justify-content:center;gap:10px;flex:none}.seg{height:42px;padding:0 32px;border-radius:24px;border:0;background:rgba(255,255,255,.2);color:rgba(255,255,255,.55);font-weight:900;font-size:19px}.seg.active{background:#fff;color:#124b59}.stage{position:relative;flex:1;min-height:0;border-radius:32px;background:var(--aqua);box-shadow:inset 0 0 0 8px rgba(255,255,255,.12),0 20px 40px rgba(0,0,0,.25);padding:14px 16px 16px;overflow:hidden}.court{height:100%;aspect-ratio:9/18;margin:auto;position:relative;background:linear-gradient(180deg,#f8ad55,var(--court2));border:6px solid #fff;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.25);overflow:visible}.line{position:absolute;background:#fff;opacity:.95}.line.center{left:0;right:0;height:4px;top:50%;transform:translateY(-50%);background:#1e1915;opacity:.86;box-shadow:0 8px 14px rgba(0,0,0,.22)}.line.attack.top{left:0;right:0;height:3px;top:33.333%;border-top:3px dashed rgba(255,255,255,.95);background:transparent}.line.attack.bottom{left:0;right:0;height:3px;top:66.667%;border-top:3px dashed rgba(255,255,255,.95);background:transparent}.net{position:absolute;left:-8px;right:-8px;top:50%;height:22px;transform:translateY(-50%);background:repeating-linear-gradient(90deg,#111 0 4px,#f5deb1 4px 18px),repeating-linear-gradient(0deg,transparent 0 7px,#111 7px 10px);border-top:4px solid #151515;border-bottom:4px solid #151515;z-index:20}.label{position:absolute;left:14px;top:14px;background:rgba(95,55,22,.88);color:#fff;font-weight:900;border-radius:12px;padding:8px 14px;font-size:18px;z-index:30}.player{position:absolute;width:60px;height:60px;border-radius:50%;transform:translate(-50%,-50%);z-index:35;display:flex;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(circle at 35% 25%,#6d7174,#202830 72%);border:5px solid #fff;box-shadow:0 10px 16px rgba(0,0,0,.32);color:#fff;font-weight:900;text-align:center;line-height:1.05;user-select:none;touch-action:none}.player.opponent{background:radial-gradient(circle at 35% 25%,#9a9a9a,#555 72%);opacity:1}.player.selected{outline:5px solid var(--green);outline-offset:2px}.pName{font-size:18px;max-width:52px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pPos{font-size:12px;max-width:52px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.opponent .pName{font-size:15px;max-width:50px}.area{position:absolute;border:3px dotted rgba(255,255,255,.95);border-radius:50%;transform:translate(-50%,-50%);z-index:22;pointer-events:none}.area.own{border-color:rgba(255,255,255,.9)}.area.selected{border:4px solid var(--green);z-index:25}.handle{position:absolute;width:21px;height:21px;border-radius:50%;background:#fff;border:4px solid var(--green);z-index:50;transform:translate(-50%,-50%);touch-action:none}.rotateHandle{background:#222;border-color:#fff}.ball{position:absolute;width:50px;height:50px;border-radius:50%;z-index:45;transform:translate(-50%,-50%);box-shadow:0 18px 22px rgba(0,0,0,.32);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:#0b5b73;touch-action:none}.ball.molten{background:conic-gradient(from 35deg,#fff 0 18%,#d94232 18% 34%,#fff 34% 48%,#0d8c75 48% 64%,#fff 64% 80%,#d94232 80% 100%)}.ball.mikasa{background:conic-gradient(from 15deg,#f8d71d 0 25%,#1269c7 25% 38%,#fff 38% 50%,#f8d71d 50% 75%,#1269c7 75% 88%,#fff 88%)}.bottom{height:82px;display:grid;grid-template-columns:repeat(5,1fr);gap:12px;flex:none}.tool{border:0;border-radius:17px;background:#073f50;color:#fff;font-weight:900;font-size:15px;box-shadow:0 8px 20px rgba(0,0,0,.24);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tool .ico{font-size:24px}.edgeHot{position:absolute;top:170px;bottom:108px;width:22px;z-index:70}.edgeHot.left{left:0}.edgeHot.right{right:0}.edgeHandle{position:absolute;top:47%;width:52px;height:120px;background:rgba(3,45,59,.62);display:none;align-items:center;justify-content:center;font-size:44px;font-weight:900;z-index:71}.edgeHandle.show{display:flex}.edgeHandle.left{left:0;border-radius:0 22px 22px 0}.edgeHandle.right{right:0;border-radius:22px 0 0 22px}.drawer{position:absolute;top:110px;bottom:10px;width:min(86vw,620px);background:linear-gradient(180deg,rgba(12,171,190,.96),rgba(4,97,119,.96));border-radius:26px;padding:28px;z-index:100;box-shadow:0 22px 44px rgba(0,0,0,.35);transition:transform .22s ease}.drawer.right{right:12px;transform:translateX(110%)}.drawer.left{left:12px;transform:translateX(-110%)}.drawer.open{transform:translateX(0)}.drawer h2{margin:0 0 20px;font-size:30px}.close{position:absolute;right:22px;top:18px;border:0;background:rgba(255,255,255,.2);color:#fff;width:54px;height:54px;border-radius:50%;font-size:34px}.list{display:flex;flex-direction:column;gap:0}.row{display:grid;grid-template-columns:58px 1fr 28px;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.16)}.num{width:52px;height:52px;border-radius:50%;background:#111;border:2px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px}.rowTitle{font-size:27px;font-weight:900}.rowSub{font-size:17px;opacity:.9}.addBtn{margin-top:18px;width:100%;height:58px;border:0;border-radius:18px;background:rgba(255,255,255,.22);color:#fff;font-size:22px;font-weight:900}.sheetBackdrop{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:150;display:none}.sheetBackdrop.open{display:block}.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;color:#123;border-radius:28px 28px 0 0;padding:26px 30px calc(env(safe-area-inset-bottom) + 26px);z-index:151;max-height:82dvh;overflow:auto;transform:translateY(110%);transition:transform .22s ease}.sheet.open{transform:translateY(0)}.sheet h2{margin:0 0 22px;font-size:28px}.form{display:grid;grid-template-columns:1fr 1fr;gap:18px}.field{display:flex;flex-direction:column;gap:8px;font-weight:900;font-size:17px;color:#40515b}.field input,.field select,.field textarea{height:58px;border:1px solid #d7e1e6;border-radius:14px;padding:0 14px;font-size:19px;background:#f7fbfd;color:#112}.field textarea{grid-column:1/-1;height:110px;padding:14px}.field.full{grid-column:1/-1}.save{grid-column:1/-1;height:64px;border:0;border-radius:18px;background:#0967d9;color:white;font-size:23px;font-weight:900}.delete{margin-top:16px;color:#e11d48;font-weight:900}.sideView{position:absolute;inset:14px 16px 16px;background:linear-gradient(180deg,#f8ad55,#f49a36);border:6px solid #fff;border-radius:10px;display:none;z-index:60;color:#123;overflow:hidden}.sideView.show{display:block}.sideNet{position:absolute;left:48%;bottom:22%;width:10px;height:45%;background:#222}.sideNet:before{content:'ネット 2.0m';position:absolute;top:-30px;left:-45px;color:#fff;font-weight:900}.person{position:absolute;bottom:20%;width:44px;height:100px;border-radius:24px 24px 12px 12px;background:rgba(0,0,0,.35)}.person:after{content:'';position:absolute;top:-36px;left:4px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.35)}.arc{position:absolute;left:20%;right:20%;top:24%;height:36%;border-top:5px dotted #fff;border-radius:50%}.hint{position:absolute;left:20px;bottom:20px;color:#fff;font-weight:900}.modeMsg{position:absolute;left:50%;bottom:98px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 18px;border-radius:20px;z-index:120;font-weight:900;display:none}.modeMsg.show{display:block}@media (max-width:420px){.app{padding-left:8px;padding-right:8px}.topbar{grid-template-columns:70px 1fr 82px}.pill{font-size:26px}.playersBtn{font-size:23px}.circleBtn{width:66px;height:66px}.bottom{gap:8px}.tool{font-size:13px}.player{width:56px;height:56px}.pName{font-size:16px}.pPos{font-size:11px}.opponent .pName{font-size:14px}.stage{padding:10px}.form{grid-template-columns:1fr}.field.full,.field textarea,.save{grid-column:1}}
+</style>
 </head>
 <body>
-  <div id="app" class="app">
-    <header class="topbar">
-      <button id="teamBtn" class="pill small">A</button>
-      <button id="sceneBtn" class="pill main">サーブレシーブ ▼</button>
-      <button id="playersBtn" class="pill small">選手</button>
-    </header>
-
-    <main class="stage">
-      <div class="viewSwitch" role="tablist">
-        <button id="topViewBtn" class="active">トップビュー</button>
-        <button id="sideViewBtn">サイドビュー</button>
-      </div>
-
-      <section id="courtWrap" class="courtWrap">
-        <div id="court" class="court" aria-label="バレーコート作戦盤">
-          <div class="courtLabel opponent">相手コート</div>
-          <div class="line attack opponentLine"></div>
-          <div class="line attack selfLine"></div>
-          <div class="net"><span></span></div>
-          <div id="ball" class="ball molten" aria-label="ボール"><span>molten</span></div>
-        </div>
-        <button id="leftHandle" class="sideHandle left" aria-label="チーム一覧">‹</button>
-        <button id="rightHandle" class="sideHandle right" aria-label="選手一覧">›</button>
-      </section>
-
-      <section id="sideView" class="sideView hidden">
-        <div class="sideCourt">
-          <div class="sideNet"><span>ネット 2.0m</span></div>
-          <div class="trajectory"></div>
-          <div class="sidePlayer self"><span>自分</span></div>
-          <div class="sidePlayer opponent"><span>相手</span></div>
-          <div class="sideBall molten"><span>molten</span></div>
-        </div>
-        <p class="sideNote">サイドビューβ：ボールの高さ・ネットとの関係を説明するための静的表示です。</p>
-      </section>
-    </main>
-
-    <footer class="toolbar">
-      <button id="undoBtn">↶<small>UNDO</small></button>
-      <button id="rangeBtn">◌<small>範囲</small></button>
-      <button id="swapBtn">⇄<small>交代</small></button>
-      <button id="addSceneBtn">＋<small>シーン</small></button>
-      <button id="resetBtn">⌫<small>リセット</small></button>
-    </footer>
+<div class="app" id="app">
+  <div class="topbar">
+    <button class="circleBtn" id="teamBtn">A</button>
+    <button class="pill" id="sceneBtn">サーブレシーブ▼</button>
+    <button class="pill playersBtn" id="playersBtn">選手</button>
   </div>
-
-  <div id="drawerBackdrop" class="drawerBackdrop hidden"></div>
-  <aside id="drawer" class="drawer hidden" aria-hidden="true"></aside>
-
-  <div id="sheetBackdrop" class="sheetBackdrop hidden"></div>
-  <section id="playerSheet" class="sheet hidden" aria-hidden="true">
-    <h2>選手情報</h2>
-    <div class="formGrid">
-      <label>ニックネーム<input id="fName" autocomplete="off" /></label>
-      <label>性別<select id="fGender"><option>未設定</option><option>男</option><option>女</option></select></label>
-      <label>学年<select id="fGrade"></select></label>
-      <label>年齢<select id="fAge"></select></label>
-      <label>身長<select id="fHeight"></select></label>
-      <label>ポジション<select id="fPosition"></select></label>
-    </div>
-    <label class="memoLabel">コーチ専用メモ<textarea id="fMemo"></textarea></label>
-    <div class="sheetActions">
-      <button id="savePlayer" class="primary">保存</button>
-      <button id="deletePlayer" class="danger">選手を削除</button>
-      <button id="closeSheet">キャンセル</button>
-    </div>
-  </section>
-
-  <script src="app.js"></script>
-</body>
-</html>
+  <div class="viewSwitch"><button class="seg active" id="topViewBtn">トップビュー</button><button class="seg" id="sideViewBtn">サイドビュー</button></div>
+  <div class="stage" id="stage">
+    <div class="court" id="court"><div class="label">相手コート</div><div class="line attack top"></div><div class="line attack bottom"></div><div class="line center"></div><div class="net"></div></div>
+    <div class="sideView" id="sideView"><div class="arc"></div><div class="sideNet"></div><div class="person" style="left:30%"></div><div class="person" style="left:62%"></div><div class="hint">サイドビューβ：高さと軌道の説明用</div></div>
+    <div class="edgeHot left" id="leftHot"></div><div class="edgeHot right" id="rightHot"></div>
+    <div class="edgeHandle left" id="leftHandle">‹</div><div class="edgeHandle right" id="rightHandle">›</div>
+  </div>
+  <div class="bottom"><button class="tool" id="undoBtn"><span class="ico">↶</span>UNDO</button><button class="tool" id="rangeBtn"><span class="ico">◌</span>範囲</button><button class="tool" id="swapBtn"><span class="ico">⇄</span>交代</button><button class="tool" id="addSceneBtn"><span class="ico">＋</span>シーン</button><button class="tool" id="resetBtn"><span class="ico">⌫</span>リセット</button></div>
+  <div class="edgeHandle left" id="leftFloating">‹</div><div class="edgeHandle right" id="rightFloating">›</div>
+  <div class="drawer right" id="playerDrawer"><button class="close" data-close="playerDrawer">×</button><h2>選手一覧</h2><div class="list" id="playerList"></div><button class="addBtn" id="addPlayerBtn">＋ 選手追加</button><button class="addBtn" id="ballTypeBtn">ボール：モルテン風</button></div>
+  <div class="drawer left" id="teamDrawer"><button class="close" data-close="teamDrawer">×</button><h2>チーム管理</h2><div class="list" id="teamList"></div><button class="addBtn" id="addTeamBtn">＋ チーム追加</button><h2 style="margin-top:26px">シーン</h2><div class="list" id="sceneList"></div><button class="addBtn" id="addSceneBtn2">＋ シーン追加</button></div>
+  <div class="sheetBackdrop" id="backdrop"></div>
+  <div class="sheet" id="sheet"><h2>選手情報</h2><div class="form">
+    <div class="field"><label>ニックネーム</label><input id="fNick" value=""></div>
+    <div class="field"><label>性別</label><select id="fGender"><option>未設定</option><option>男</option><option>女</option></select></div>
+    <div class="field"><label>生年月日</label><input id="fBirth" type="date"></div>
+    <div class="field"><label>年齢</label><input id="fAge" readonly></div>
+    <div class="field"><label>学年</label><select id="fGrade"></select></div>
+    <div class="field"><label>身長</label><select id="fHeight"></select></div>
+    <div class="field full"><label>平均身長参考</label><input id="fAvg" readonly></div>
+    <div class="field full"><label>ポジション</label><select id="fPos"></select></div>
+    <div class="field full"><label>コーチ専用メモ</label><textarea id="fMemo"></textarea></div>
+    <button class="save" id="savePlayerBtn">保存</button>
+  </div><div class="delete" id="deletePlayerBtn">選手を削除</div></div>
+  <div class="modeMsg" id="modeMsg">交代する2人を順番にタップ</div>
+</div>
+<script>
+(()=>{
+'use strict';
+const KEY='vboard_sprint20_rc1';
+const posOrder=['セッター','レフト','センター','ライト','Bレフト','Bライト'];
+const ownPos={ 'セッター':[50,57], 'レフト':[25,68], 'センター':[50,73], 'ライト':[75,68], 'Bレフト':[35,86], 'Bライト':[65,86] };
+const oppPos={ 'Bライト':[35,14], 'Bレフト':[65,14], 'ライト':[25,28], 'センター':[50,33], 'レフト':[75,28], 'セッター':[50,43] };
+const avg={男:{8:128.1,9:133.5,10:138.8,11:145.2,12:152.8},女:{8:127.3,9:133.4,10:140.1,11:146.8,12:151.9}};
+let state=load()||init();let selected=null, dragging=null, longTimer=null, longFired=false, swapMode=false, swapFirst=null, currentEdit=null, hist=[];
+const $=id=>document.getElementById(id);const court=$('court');
+function init(){return{team:0,scene:0,view:'top',ball:'molten',teams:[{name:'A',players:posOrder.map((p,i)=>({id:'p'+i,nick:'',pos:p,grade:4,height:135,gender:'未設定',birth:'',memo:''})),scenes:[makeScene('サーブレシーブ')]}]}}
+function makeScene(name){let own={},opp={};posOrder.forEach(p=>{own[p]={x:ownPos[p][0],y:ownPos[p][1],rx:9.5,ry:9.5,rot:0};opp[p]={x:oppPos[p][0],y:oppPos[p][1]}});return{id:'s'+Date.now()+Math.random(),name,own,opp,ball:{x:50,y:50}}}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}function save(){localStorage.setItem(KEY,JSON.stringify(state))}function team(){return state.teams[state.team]}function scene(){return team().scenes[state.scene]}function pushHist(){hist.push(JSON.stringify(state));if(hist.length>30)hist.shift()}
+function render(){save();renderTop();renderCourt();renderDrawers();}
+function renderTop(){ $('teamBtn').textContent=team().name; $('sceneBtn').textContent=scene().name+' ▼'; $('ballTypeBtn').textContent='ボール：'+(state.ball==='molten'?'モルテン風':'ミカサ風'); }
+function pct(v,axis){const r=court.getBoundingClientRect();return axis==='x'?r.width*v/100:r.height*v/100}
+function createMarker(p,side,layout){const el=document.createElement('div');el.className='player '+(side==='opp'?'opponent':'own')+(selected===p.id?' selected':'');el.style.left=layout.x+'%';el.style.top=layout.y+'%';el.dataset.id=p.id;el.dataset.side=side;const name=document.createElement('div');name.className='pName';const pos=document.createElement('div');pos.className='pPos';if(side==='opp'){name.textContent=p.pos;pos.textContent=''}else{name.textContent=p.nick||'';pos.textContent=p.pos}el.append(name,pos);bindMarker(el,p,side);return el}
+function renderCourt(){[...court.querySelectorAll('.player,.area,.handle,.ball')].forEach(e=>e.remove()); const sc=scene();
+ team().players.forEach(p=>{const l=sc.own[p.pos]||ownPos[p.pos]&&{x:ownPos[p.pos][0],y:ownPos[p.pos][1],rx:9.5,ry:9.5,rot:0}; if(!l)return; addArea(p,l,true); court.appendChild(createMarker(p,'own',l));});
+ posOrder.forEach((p,i)=>{const l=sc.opp[p]||{x:oppPos[p][0],y:oppPos[p][1]}; court.appendChild(createMarker({id:'o'+p,pos:p,nick:''},'opp',l));});
+ const b=document.createElement('div');b.className='ball '+state.ball;b.textContent=state.ball==='molten'?'molten':'MIKASA';b.style.left=sc.ball.x+'%';b.style.top=sc.ball.y+'%';bindBall(b);court.appendChild(b);
+ if(selected){const p=team().players.find(x=>x.id===selected); if(p){const l=sc.own[p.pos]; addHandles(l,p)}}
+ $('sideView').classList.toggle('show',state.view==='side'); $('topViewBtn').classList.toggle('active',state.view==='top'); $('sideViewBtn').classList.toggle('active',state.view==='side');}
+function addArea(p,l,own){const a=document.createElement('div');a.className='area own'+(selected===p.id?' selected':'');a.style.left=l.x+'%';a.style.top=l.y+'%';a.style.width=pct(l.rx*2,'x')+'px';a.style.height=pct(l.ry*2,'x')+'px';a.style.transform=`translate(-50%,-50%) rotate(${l.rot||0}deg)`;court.appendChild(a)}
+function addHandles(l,p){[['r',l.x+l.rx,l.y],['b',l.x,l.y+l.ry],['s',l.x+l.rx*.72,l.y+l.ry*.72],['rot',l.x+l.rx*.82,l.y-l.ry*.82]].forEach(([type,x,y])=>{const h=document.createElement('div');h.className='handle '+(type==='rot'?'rotateHandle':'');h.style.left=x+'%';h.style.top=y+'%';h.dataset.handle=type;bindHandle(h,p,l,type);court.appendChild(h)})}
+function bindMarker(el,p,side){el.addEventListener('pointerdown',e=>{e.stopPropagation();longFired=false;el.setPointerCapture(e.pointerId);longTimer=setTimeout(()=>{longFired=true;if(side==='own')openEdit(p.id)},520);dragging={type:'player',id:p.id,side,startX:e.clientX,startY:e.clientY,moved:false};});el.addEventListener('pointermove',e=>{if(!dragging||dragging.id!==p.id)return;const dx=Math.abs(e.clientX-dragging.startX),dy=Math.abs(e.clientY-dragging.startY);if(dx+dy>8){dragging.moved=true;clearTimeout(longTimer)} if(dragging.moved&&side==='own'){const r=court.getBoundingClientRect();const l=scene().own[p.pos];l.x=Math.max(4,Math.min(96,(e.clientX-r.left)/r.width*100));l.y=Math.max(4,Math.min(96,(e.clientY-r.top)/r.height*100));renderCourt();}});el.addEventListener('pointerup',e=>{clearTimeout(longTimer);if(swapMode&&side==='own'){handleSwap(p.id);return}if(!longFired&&!dragging?.moved){selected=p.id;renderCourt()}dragging=null;save();});}
+function bindBall(b){b.addEventListener('pointerdown',e=>{e.stopPropagation();b.setPointerCapture(e.pointerId);dragging={type:'ball'}});b.addEventListener('pointermove',e=>{if(!dragging||dragging.type!=='ball')return;const r=court.getBoundingClientRect();scene().ball.x=Math.max(3,Math.min(97,(e.clientX-r.left)/r.width*100));scene().ball.y=Math.max(3,Math.min(97,(e.clientY-r.top)/r.height*100));renderCourt();});b.addEventListener('pointerup',()=>{dragging=null;save()})}
+function bindHandle(h,p,l,type){h.addEventListener('pointerdown',e=>{e.stopPropagation();h.setPointerCapture(e.pointerId);dragging={type:'handle',handle:type,pos:p.pos,cx:l.x,cy:l.y}});h.addEventListener('pointermove',e=>{if(!dragging||dragging.type!=='handle')return;const r=court.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*100,y=(e.clientY-r.top)/r.height*100;const ll=scene().own[p.pos];if(type==='r')ll.rx=Math.max(6,Math.min(35,Math.abs(x-ll.x)));if(type==='b')ll.ry=Math.max(6,Math.min(35,Math.abs(y-ll.y)));if(type==='s'){const d=Math.max(Math.abs(x-ll.x),Math.abs(y-ll.y));ll.rx=ll.ry=Math.max(6,Math.min(35,d));}if(type==='rot')ll.rot=Math.atan2(y-ll.y,x-ll.x)*180/Math.PI+45;renderCourt();});h.addEventListener('pointerup',()=>{dragging=null;save()})}
+court.addEventListener('pointerdown',()=>{selected=null;renderCourt()});
+function openEdit(id){currentEdit=id;const p=team().players.find(x=>x.id===id);if(!p)return;$('fNick').value=p.nick||'';$('fGender').value=p.gender||'未設定';$('fBirth').value=p.birth||'';$('fGrade').value=p.grade;$('fHeight').value=p.height;$('fPos').value=p.pos;$('fMemo').value=p.memo||'';updateAge();$('backdrop').classList.add('open');$('sheet').classList.add('open')}
+function closeEdit(){$('backdrop').classList.remove('open');$('sheet').classList.remove('open');currentEdit=null}
+function updateAge(){const b=$('fBirth').value;if(!b){$('fAge').value='';$('fAvg').value='生年月日と性別を入れると表示';return}const d=new Date(b),now=new Date();let m=(now.getFullYear()-d.getFullYear())*12+(now.getMonth()-d.getMonth());if(now.getDate()<d.getDate())m--;const y=Math.max(0,Math.floor(m/12)),mo=Math.max(0,m%12);$('fAge').value=`${y}歳${mo}か月`;const g=$('fGender').value,h=Number($('fHeight').value);if(avg[g]&&avg[g][y]){$('fAvg').value=`平均 ${avg[g][y]}cm / 差 ${(h-avg[g][y]).toFixed(1)}cm`}else $('fAvg').value='参考データなし'}
+function renderDrawers(){const pl=$('playerList');pl.innerHTML='';team().players.slice().sort((a,b)=>posOrder.indexOf(a.pos)-posOrder.indexOf(b.pos)).forEach((p,i)=>{const r=document.createElement('div');r.className='row';r.innerHTML=`<div class="num">${i+1}</div><div><div class="rowTitle">${p.nick||p.pos}</div><div class="rowSub">${p.pos} / ${p.grade}年 / ${p.height}cm</div></div><div>›</div>`;r.onclick=()=>openEdit(p.id);pl.appendChild(r)});
+ const tl=$('teamList');tl.innerHTML='';state.teams.forEach((t,i)=>{const r=document.createElement('div');r.className='row';r.innerHTML=`<div class="num">${String.fromCharCode(65+i)}</div><div><div class="rowTitle">${t.name}</div></div><div>›</div>`;r.onclick=()=>{state.team=i;state.scene=0;closeDrawer('teamDrawer');render()};tl.appendChild(r)});
+ const sl=$('sceneList');sl.innerHTML='';team().scenes.forEach((s,i)=>{const r=document.createElement('div');r.className='row';r.innerHTML=`<div class="num">${i+1}</div><div><div class="rowTitle">${s.name}</div></div><div>›</div>`;r.onclick=()=>{state.scene=i;closeDrawer('teamDrawer');render()};sl.appendChild(r)});}
+function openDrawer(id){$(id).classList.add('open')}function closeDrawer(id){$(id).classList.remove('open')}function hideHandles(){$('leftHandle').classList.remove('show');$('rightHandle').classList.remove('show')} 
+function handleSwap(id){if(!swapFirst){swapFirst=id;$('modeMsg').textContent='交代する相手をタップ';return}const a=team().players.find(p=>p.id===swapFirst),b=team().players.find(p=>p.id===id);if(a&&b&&a.id!==b.id){[a.pos,b.pos]=[b.pos,a.pos]}swapFirst=null;swapMode=false;$('modeMsg').classList.remove('show');render()}
+function addPlayer(){const used=team().players.map(p=>p.pos);const p=posOrder.find(x=>!used.includes(x))||'セッター';team().players.push({id:'p'+Date.now(),nick:'',pos:p,grade:4,height:135,gender:'未設定',birth:'',memo:''});render()}
+function addTeam(){state.teams.push({name:String.fromCharCode(65+state.teams.length),players:posOrder.map((p,i)=>({id:'p'+Date.now()+i,nick:'',pos:p,grade:4,height:135,gender:'未設定',birth:'',memo:''})),scenes:[makeScene('サーブレシーブ')]});state.team=state.teams.length-1;state.scene=0;render()}
+function addScene(){team().scenes.push(makeScene('新しいシーン'));state.scene=team().scenes.length-1;render()}
+function resetScene(){pushHist();team().scenes[state.scene]=makeScene(scene().name);selected=null;render()}
+['1年','2年','3年','4年','5年','6年'].forEach((g,i)=>{const o=document.createElement('option');o.value=i+1;o.textContent=g;$('fGrade').appendChild(o)});for(let i=100;i<=180;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'cm';$('fHeight').appendChild(o)}posOrder.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;$('fPos').appendChild(o)});
+$('playersBtn').onclick=()=>openDrawer('playerDrawer');$('teamBtn').onclick=()=>openDrawer('teamDrawer');$('sceneBtn').onclick=()=>openDrawer('teamDrawer');$('addPlayerBtn').onclick=addPlayer;$('addTeamBtn').onclick=addTeam;$('addSceneBtn').onclick=addScene;$('addSceneBtn2').onclick=addScene;$('resetBtn').onclick=resetScene;$('undoBtn').onclick=()=>{const h=hist.pop();if(h){state=JSON.parse(h);render()}};$('swapBtn').onclick=()=>{swapMode=!swapMode;swapFirst=null;$('modeMsg').classList.toggle('show',swapMode);$('modeMsg').textContent='交代する2人を順番にタップ'};$('rangeBtn').onclick=()=>{if(selected)renderCourt()};$('ballTypeBtn').onclick=()=>{state.ball=state.ball==='molten'?'mikasa':'molten';render()};$('topViewBtn').onclick=()=>{state.view='top';renderCourt()};$('sideViewBtn').onclick=()=>{state.view='side';renderCourt()};$('backdrop').onclick=closeEdit;document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeDrawer(b.dataset.close));$('savePlayerBtn').onclick=()=>{const p=team().players.find(x=>x.id===currentEdit);if(p){const old=p.pos;p.nick=$('fNick').value.trim();p.gender=$('fGender').value;p.birth=$('fBirth').value;p.grade=Number($('fGrade').value);p.height=Number($('fHeight').value);p.pos=$('fPos').value;p.memo=$('fMemo').value;if(old!==p.pos){const sc=scene();sc.own[p.pos]=sc.own[p.pos]||{x:ownPos[p.pos][0],y:ownPos[p.pos][1],rx:9.5,ry:9.5,rot:0}}}closeEdit();render()};$('deletePlayerBtn').onclick=()=>{team().players=team().players.filter(p=>p.id!==currentEdit);closeEdit();render()};['fBirth','fGender','fHeight'].forEach(id=>$(id).addEventListener('change',updateAge));
+$('leftHot').onclick=()=>{$('leftHandle').classList.add('show')};$('rightHot').onclick=()=>{$('rightHandle').classList.add('show')};$('leftHandle').onclick=()=>openDrawer('teamDrawer');$('rightHandle').onclick=()=>openDrawer('playerDrawer');
+let sx=0,sy=0;document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)){if(dx>0){closeDrawer('playerDrawer')}else{closeDrawer('teamDrawer')}hideHandles()}},{passive:true});
+render();
+})();
+</script>
+</body></html>
