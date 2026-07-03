@@ -1,1 +1,1 @@
-{"scripts":{"build":"rm -rf public && mkdir -p public && cp index.html manifest.webmanifest icon.svg README.md public/"},"dependencies":{},"devDependencies":{}}
+{"scripts":{"build":"mkdir -p public && cp index.html public/index.html && cp manifest.webmanifest public/manifest.webmanifest && cp icon.svg public/icon.svg && cp README.md public/README.md"},"dependencies":{},"devDependencies":{}}

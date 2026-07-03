@@ -1,9 +1,13 @@
-# V Board Sprint20 RC2
+# V Board Sprint20 RC3
 
-Vercel設定は以下でOKです。
+修正重点版。
 
-- Build Command: `npm run build`
-- Output Directory: `public`
-- Install Command: 空欄またはデフォルト
+- シーン選択・保存を復旧
+- マーク外タップで選択解除
+- 相手コートの守備範囲を非表示
+- 相手コート配置を指定仕様に修正
+- 自分側守備範囲をpx基準にして真円・横楕円・縦楕円調整に対応
+- マーカーのドラッグ、長押し編集を再実装
+- 生年月日から年齢/平均との差を表示
 
-今回のZIPは `package.json` の build で `public` を自動生成するため、Vercelの `public directory missing` エラーを避けます。
+Vercel設定: Build Command `npm run build` / Output Directory `public`
